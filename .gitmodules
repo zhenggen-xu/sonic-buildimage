@@ -7,11 +7,11 @@
 	url = https://github.com/Azure/sonic-linux-kernel
 [submodule "sonic-sairedis"]
 	path = src/sonic-sairedis
-	url = https://github.com/Azure/sonic-sairedis
+	url = https://github.com/zhenggen-xu/sonic-sairedis
 	branch = 201811
 [submodule "sonic-swss"]
 	path = src/sonic-swss
-	url = https://github.com/Azure/sonic-swss
+	url = https://github.com/zhenggen-xu/sonic-swss
 	branch = 201811
 [submodule "src/p4c-bm/p4c-bm"]
 	path = platform/p4/p4c-bm/p4c-bm
