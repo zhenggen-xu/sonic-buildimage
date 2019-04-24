@@ -1,6 +1,6 @@
-opennsl (3.5.1.1-1) unstable; urgency=medium
+opennsl (3.5.1.2-1) unstable; urgency=medium
 
-  * Port Broadcom SAI 3.5.1.1
+  * Port Broadcom SAI 3.5.1.2
   * Merge to sdk 6.5.14 based gpl modules
 
  -- Zhenggen Xu <zxu@linkedin.com> Mon, 15 Apr 2019 12:21:47 -0800
