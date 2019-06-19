@@ -2,7 +2,8 @@
 SHELL = /bin/bash
 .SHELLFLAGS += -e
 
-MAIN_TARGET = frr_$(FRR_VERSION)-1~sonic.debian8+1_amd64.deb
+MAIN_TARGET = $(FRR)
+DERIVED_TARGET = $(FRR_PYTHONTOOLS) $(FRR_DBG) $(FRR_SNMP) $(FRR_SNMP_DBG)
 
 $(addprefix $(DEST)/, $(MAIN_TARGET)): $(DEST)/% :
 
