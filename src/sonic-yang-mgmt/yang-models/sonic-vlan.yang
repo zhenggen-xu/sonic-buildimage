@@ -1,0 +1,180 @@
+module sonic-vlan {
+    
+    namespace "http://sonic-vlan";
+    prefix sonic-vlan;
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+
+    import sonic-head {
+        prefix sonic-head;
+        revision-date 2019-07-01;
+    }
+
+    import sonic-port {
+        prefix sonic-port;
+        revision-date 2019-07-01;
+    }
+
+    organization "Linkedin Corporation";
+
+    contact "lnos_coders@linkedin.com";
+
+    description "VLAN yang Module for SONiC OS";
+    
+    revision 2019-07-01 {
+        description "First Revision";
+    }
+
+    container VLAN_INTERFACE {
+
+        description "VLAN_INTERFACE part of config_db.json";
+
+        list VLAN_INTERFACE_LIST {
+
+            key "vlanid ip-prefix";
+/*
+            sonic-head:sonic_db_path "VLAN_INTERFACE";  [Todo: Fix by extension]
+
+            sonic-head:sonic_db_schema {                [Todo: Fix by extension]
+                "Vlan{vlanid}|{ip-prefix}": {
+                    "scope": {scope},
+                    "family": {family}
+                }
+            }
+*/            
+            leaf vlanid {
+                type leafref {
+                    path "/VLAN/VLAN_LIST/vlanid";
+                }
+            }
+
+            
+            /* We need a check like when "family = 'IPv6'"; */
+            leaf ip-prefix {
+                mandatory true;
+                type inet:ip-prefix;
+            }
+            
+            leaf scope {
+                mandatory true;
+                type enumeration {
+                    enum global;
+                    enum local;
+                }
+            }
+
+            leaf family {
+                mandatory true;
+                type sonic-head:ip-family;
+            }
+        }
+        /* end of VLAN_INTERFACE_LIST */
+
+    }
+    /* end of VLAN_INTERFACE container */
+
+    container VLAN {
+
+        description "VLAN part of config_db.json";
+
+        list VLAN_LIST {
+
+            key "vlanid";
+/*
+            <sonic_top>\sonic_db_path "VLAN";
+
+            sonic-head:sonic_db_schema {
+                "Vlan{vlanid}: {
+                    "description": {description},
+                    "dhcp_servers": {dhcp_servers},
+                    "vlanid": {vlanid},
+                    "mtu": {mtu},
+                    "admin_status": {admin_status},
+                    "members": {members},
+                }
+            }
+*/
+            leaf vlanid {
+                type uint16 {
+                    range 1..4094;
+                }
+            }
+
+            leaf description {
+                type string {
+                    length 1..255;
+                }
+            }
+
+            leaf-list dhcp_servers {
+                type inet:ip-address;
+            }
+
+            leaf mtu {
+                type uint16 {
+                    range 1..9216;
+                }
+            }
+
+            leaf admin_status {
+                mandatory true;
+                type sonic-head:admin_status;
+            }
+
+            leaf-list members {
+                /* leaf-list members are unique by default */
+
+                type leafref {
+                    path /sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name;
+                }
+            }
+        }
+        /* end of VLAN_LIST */
+    }
+    /* end of container VLAN */
+
+    container VLAN_MEMBER {
+
+        description "VLAN_MEMBER part of config_db.json";
+
+        list VLAN_MEMBER_LIST {
+
+            key "vlanid port";
+/*
+            sonic-head:sonic_db_path "VLAN";
+
+            sonic-head:sonic_db_schema {
+                "Vlan{vlanid}|{port}": {
+                "tagging_mode": {tagging_mode}
+                }
+            }
+*/
+            leaf vlanid {
+                type leafref {
+                    path ../../../VLAN/VLAN_LIST/vlanid;
+                }
+            }
+
+            leaf port {
+                /* key elements are mandatory by default */
+                mandatory true;
+                type leafref {
+                    path /sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name;
+                }
+            }
+
+            leaf tagging_mode {
+                mandatory true;
+                type sonic-head:vlan_tagging_mode;
+            }
+        }
+        /* end of list VLAN_MEMBER_LIST */
+    }
+    /* end of container VLAN_MEMBER */
+}

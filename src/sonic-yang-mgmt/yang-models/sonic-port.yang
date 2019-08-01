@@ -1,0 +1,100 @@
+module sonic-port{
+
+    namespace "http://sonic-port";
+    prefix sonic-port;
+/*
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+*/
+    import sonic-head {
+        prefix sonic-head;
+        revision-date 2019-07-01;
+    }
+
+    organization "Linkedin Corporation";
+
+    contact "lnos_coders@linkedin.com";
+
+    description "PORT yang Module for SONiC OS";
+    
+    revision 2019-07-01 {
+        description "First Revision";
+    }
+
+    container PORT {
+
+        description "PORT part of config_db.json";
+
+        list PORT_LIST {
+
+            key "port_name";
+/*
+            sonic-head:sonic_db_path = PORT;        [Todo: Fix by extension]
+
+            sonic-head:sonic_db_schema {            [Todo: Fix by extension]
+                {port_name}: {
+                    "alias": {alias},
+                    "lanes": {lanes},
+                    "description": {description},
+                    "speed": {speed},
+                    "mtu": {mtu}
+                }
+            }
+*/
+            leaf port_name {
+                type string {
+                    length 1..128;
+                    /* <must be a valid name as per profile.json>;  [Todo: verify this] */
+                }
+            }
+
+            leaf alias {
+                config false;
+                type string {
+                    length 1..128;
+                    /* <get_alias_function()>; [Todo] */
+                }
+            }
+
+            leaf lanes {
+                config false;
+                type string {
+                    length 1..128;
+                    /* <get_lanes_function()>; [Todo] */
+                }
+            }
+
+            leaf description {
+                type string {
+                    length 1..255;
+                }
+            }
+
+            leaf speed {
+                type uint32 {
+                    range 1..100000;
+                    /* <must be a valid speed as per profile.json>;  [Todo: verify this] */
+                }
+            }
+
+            leaf mtu {
+                type uint16 {
+                    range 1..9216;
+                }
+            }
+
+            leaf admin_status {
+                mandatory true;
+                type sonic-head:admin_status;
+            }
+        }
+        /* end of list PORT_LIST */
+    }
+    /* end of container PORT */
+}
+/* end of module sonic-port */
