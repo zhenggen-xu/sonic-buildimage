@@ -1,7 +1,5 @@
 Sonic Yang TREE:
 
-bash-3.2$ pyang -f tree sonic-vlan.yang
-sonic-vlan.yang:6: warning: imported module "ietf-yang-types" not used
 module: sonic-vlan
   +--rw VLAN_INTERFACE
   |  +--rw VLAN_INTERFACE_LIST* [vlanid ip-prefix]
@@ -23,8 +21,6 @@ module: sonic-vlan
         +--rw port            -> /sonic-port:PORT/PORT_LIST/port_name
         +--rw tagging_mode    sonic-head:vlan_tagging_mode
 
-
-bash-3.2$ pyang -f tree sonic-port.yang
 module: sonic-port
   +--rw PORT
      +--rw PORT_LIST* [port_name]
@@ -36,8 +32,6 @@ module: sonic-port
         +--rw mtu?            uint16
         +--rw admin_status    sonic-head:admin_status
 
-
-bash-3.2$ pyang -f tree sonic-acl.yang
 module: sonic-acl
   +--rw ACL_RULE
   |  +--rw ACL_RULE_LIST* [ACL_TABLE_NAME RULE_NAME]

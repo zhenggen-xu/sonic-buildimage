@@ -54,7 +54,7 @@ module sonic-port{
             }
 
             leaf alias {
-                config false;
+                /* config false; */
                 type string {
                     length 1..128;
                     /* <get_alias_function()>; [Todo] */
@@ -62,7 +62,7 @@ module sonic-port{
             }
 
             leaf lanes {
-                config false;
+                /* config false; */
                 type string {
                     length 1..128;
                     /* <get_lanes_function()>; [Todo] */
