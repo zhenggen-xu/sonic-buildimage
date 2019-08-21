@@ -50,19 +50,16 @@ module sonic-vlan {
 */            
             leaf vlanid {
                 type leafref {
-                    path "/VLAN/VLAN_LIST/vlanid";
+                    path ../../../VLAN/VLAN_LIST/vlanid;
                 }
             }
 
-            
-            /* We need a check like when "family = 'IPv6'"; */
             leaf ip-prefix {
                 mandatory true;
                 type inet:ip-prefix;
             }
             
             leaf scope {
-                mandatory true;
                 type enumeration {
                     enum global;
                     enum local;
@@ -70,7 +67,8 @@ module sonic-vlan {
             }
 
             leaf family {
-                mandatory true;
+                must "(contains(../ip-prefix, ':') and current()='IPv6') or
+                      (contains(../ip-prefix, '.') and current()='IPv4')";
                 type sonic-head:ip-family;
             }
         }

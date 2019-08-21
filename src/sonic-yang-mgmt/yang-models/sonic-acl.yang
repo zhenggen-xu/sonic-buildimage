@@ -2,11 +2,11 @@ module sonic-acl {
 
     namespace "http://sonic-acl";
     prefix sonic-acl;
-/*
+
     import ietf-yang-types {
         prefix yang;
     }
-*/
+
     import ietf-inet-types {
         prefix inet;
     }
@@ -72,7 +72,6 @@ module sonic-acl {
                 }
             }
 */
-
             leaf ACL_TABLE_NAME {
                 type leafref {
                     path "/sonic-acl:ACL_TABLE/sonic-acl:ACL_TABLE_LIST/sonic-acl:ACL_TABLE_NAME";
@@ -171,7 +170,7 @@ module sonic-acl {
                     pattern "(0x88CC|0x8100|0x8915|0x0806|0x0800|0x86DD|0x8847)";
                 }
             }
-            
+
             leaf IP_PROTOCOL {
                 type uint8 {
                     range 1..143;
@@ -283,7 +282,6 @@ module sonic-acl {
                     path /sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name;
                 }
             }
-
         }
         /* end of container ACL_TABLE */
     }

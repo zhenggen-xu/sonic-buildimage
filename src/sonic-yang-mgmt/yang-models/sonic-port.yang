@@ -2,7 +2,7 @@ module sonic-port{
 
     namespace "http://sonic-port";
     prefix sonic-port;
-/*
+
     import ietf-yang-types {
         prefix yang;
     }
@@ -10,7 +10,7 @@ module sonic-port{
     import ietf-inet-types {
         prefix inet;
     }
-*/
+
     import sonic-head {
         prefix sonic-head;
         revision-date 2019-07-01;
@@ -49,23 +49,18 @@ module sonic-port{
             leaf port_name {
                 type string {
                     length 1..128;
-                    /* <must be a valid name as per profile.json>;  [Todo: verify this] */
                 }
             }
 
             leaf alias {
-                /* config false; */
                 type string {
                     length 1..128;
-                    /* <get_alias_function()>; [Todo] */
                 }
             }
 
             leaf lanes {
-                /* config false; */
                 type string {
                     length 1..128;
-                    /* <get_lanes_function()>; [Todo] */
                 }
             }
 
@@ -78,7 +73,6 @@ module sonic-port{
             leaf speed {
                 type uint32 {
                     range 1..100000;
-                    /* <must be a valid speed as per profile.json>;  [Todo: verify this] */
                 }
             }
 
