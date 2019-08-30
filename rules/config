@@ -36,7 +36,7 @@ SONIC_CONFIG_MAKE_JOBS = $(shell nproc)
 DEFAULT_USERNAME = admin
 
 # DEFAULT_PASSWORD - default password for installer build
-DEFAULT_PASSWORD = YourPaSsWoRd
+DEFAULT_PASSWORD = admin123
 
 # ENABLE_DHCP_GRAPH_SERVICE - specify the source of minigraph to generate configuration file.
 # If set to y SONiC will get the minigraph from graph service. Graph service URL need to be
@@ -73,7 +73,7 @@ ENABLE_ORGANIZATION_EXTENSIONS = y
 # as includes symbols information. Given that 'profiling' option is a superset
 # of 'debugging' one, user should only enable either one option or the other --
 # if both options are enabled, the 'profiling' one will prevail.
-#SONIC_DEBUGGING_ON = y
+SONIC_DEBUGGING_ON = y
 #SONIC_PROFILING_ON = y
 
 # ENABLE_SYSTEM_TELEMETRY - build docker-sonic-telemetry for system telemetry support
