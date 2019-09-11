@@ -216,7 +216,7 @@ RUN export VERSION=1.8.3 \
 
 # For p4 build
 RUN pip install \
-        ctypesgen \
+        ctypesgen==0.r125 \
         crc16
 
 # For templating
