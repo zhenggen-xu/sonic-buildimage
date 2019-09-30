@@ -69,8 +69,4 @@ module sonic-head {
             enum priority_tagged;
         }
     }
-
-    extension sonic_db_path;
-
-    extension sonic_db_schema;
 }

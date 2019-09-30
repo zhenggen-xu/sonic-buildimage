@@ -1,79 +1,78 @@
 module sonic-interface {
-    
-    namespace "http://sonic-interface";
-    prefix sonic-intf;
 
-    import ietf-yang-types {
-        prefix yang;
-    }
+	namespace "http://github.com/Azure/sonic-interface";
+	prefix intf;
 
-    import ietf-inet-types {
-        prefix inet;
-    }
+	import ietf-yang-types {
+		prefix yang;
+	}
 
-    import sonic-head {
-        prefix sonic-head;
-        revision-date 2019-07-01;
-    }
+	import ietf-inet-types {
+		prefix inet;
+	}
 
-    import sonic-port {
-        prefix sonic-port;
-        revision-date 2019-07-01;
-    }
+	import sonic-head {
+		prefix head;
+		revision-date 2019-07-01;
+	}
 
-    organization "Linkedin Corporation";
+	import sonic-port {
+		prefix port;
+		revision-date 2019-07-01;
+	}
 
-    contact "lnos_coders@linkedin.com";
+	organization "Linkedin Corporation";
 
-    description "INTERFACE yang Module for SONiC OS";
-    
-    revision 2019-07-01 {
-        description "First Revision";
-    }
+	contact "lnos_coders@linkedin.com";
 
-    container INTERFACE {
+	description "INTERFACE yang Module for SONiC OS";
 
-        description "INTERFACE part of config_db.json";
+	revision 2019-07-01 {
+		description "First Revision";
+	}
 
-        list INTERFACE_LIST {
+	container sonic-interface {
+		container INTERFACE {
 
-            key "interface ip-prefix";
-/*
-            sonic-head:sonic_db_path "INTERFACE";       [Todo: Fix by extension]
+			description "INTERFACE part of config_db.json";
 
-            sonic-head:sonic_db_schema {                [Todo: Fix by extension]
-                "{interface}|{ip-prefix}": {
-                    "scope": {scope},
-                    "family": {family}
-                }
-            }
-*/            
-            leaf interface {
-                type leafref {
-                    path /sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name;
-                }
-            }
+			list INTERFACE_LIST {
 
-            leaf ip-prefix {
-                mandatory true;
-                type inet:ip-prefix;
-            }
-            
-            leaf scope {
-                type enumeration {
-                    enum global;
-                    enum local;
-                }
-            }
+				key "interface ip-prefix";
 
-            leaf family {
-                must "(contains(../ip-prefix, ':') and current()='IPv6') or
-                      (contains(../ip-prefix, '.') and current()='IPv4')";
-                type sonic-head:ip-family;
-            }
-        }
-        /* end of INTERFACE_LIST */
+				leaf interface {
+					type leafref {
+						path /port:sonic-port/port:PORT/port:PORT_LIST/port:port_name;
+					}
+				}
 
-    }
-    /* end of INTERFACE container */
+				leaf ip-prefix {
+					type inet:ip-prefix;
+				}
+
+				leaf scope {
+					type enumeration {
+						enum global;
+						enum local;
+					}
+				}
+
+				leaf family {
+
+					/* family leaf needed for backward compatibility
+					   Both ip4 and ip6 address are string in IETF RFC 6021,
+					   so must statement can check based on : or ., family
+					   should be IPv4 or IPv6 according.
+					 */
+
+					must "(contains(../ip-prefix, ':') and current()='IPv6') or
+						(contains(../ip-prefix, '.') and current()='IPv4')";
+					type head:ip-family;
+				}
+			}
+			/* end of INTERFACE_LIST */
+
+		}
+		/* end of INTERFACE container */
+	}
 }

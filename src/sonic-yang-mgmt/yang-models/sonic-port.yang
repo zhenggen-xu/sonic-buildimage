@@ -1,94 +1,84 @@
 module sonic-port{
 
-    namespace "http://sonic-port";
-    prefix sonic-port;
+	namespace "http://github.com/Azure/sonic-port";
+	prefix port;
 
-    import ietf-yang-types {
-        prefix yang;
-    }
+	import ietf-yang-types {
+		prefix yang;
+	}
 
-    import ietf-inet-types {
-        prefix inet;
-    }
+	import ietf-inet-types {
+		prefix inet;
+	}
 
-    import sonic-head {
-        prefix sonic-head;
-        revision-date 2019-07-01;
-    }
+	import sonic-head {
+		prefix head;
+		revision-date 2019-07-01;
+	}
 
-    organization "Linkedin Corporation";
+	organization "Linkedin Corporation";
 
-    contact "lnos_coders@linkedin.com";
+	contact "lnos_coders@linkedin.com";
 
-    description "PORT yang Module for SONiC OS";
-    
-    revision 2019-07-01 {
-        description "First Revision";
-    }
+	description "PORT yang Module for SONiC OS";
 
-    container PORT {
+	revision 2019-07-01 {
+		description "First Revision";
+	}
 
-        description "PORT part of config_db.json";
+	container sonic-port{
+		container PORT {
 
-        list PORT_LIST {
+			description "PORT part of config_db.json";
 
-            key "port_name";
-/*
-            sonic-head:sonic_db_path = PORT;        [Todo: Fix by extension]
+			list PORT_LIST {
 
-            sonic-head:sonic_db_schema {            [Todo: Fix by extension]
-                {port_name}: {
-                    "alias": {alias},
-                    "lanes": {lanes},
-                    "description": {description},
-                    "speed": {speed},
-                    "mtu": {mtu}
-                }
-            }
-*/
-            leaf port_name {
-                type string {
-                    length 1..128;
-                }
-            }
+				key "port_name";
 
-            leaf alias {
-                type string {
-                    length 1..128;
-                }
-            }
+				leaf port_name {
+					type string {
+						length 1..128;
+					}
+				}
 
-            leaf lanes {
-                type string {
-                    length 1..128;
-                }
-            }
+				leaf alias {
+					type string {
+						length 1..128;
+					}
+				}
 
-            leaf description {
-                type string {
-                    length 1..255;
-                }
-            }
+				leaf lanes {
+					type string {
+						length 1..128;
+					}
+				}
 
-            leaf speed {
-                type uint32 {
-                    range 1..100000;
-                }
-            }
+				leaf description {
+					type string {
+						length 1..255;
+					}
+				}
 
-            leaf mtu {
-                type uint16 {
-                    range 1..9216;
-                }
-            }
+				leaf speed {
+					type uint32 {
+						range 1..100000;
+					}
+				}
 
-            leaf admin_status {
-                mandatory true;
-                type sonic-head:admin_status;
-            }
-        }
-        /* end of list PORT_LIST */
-    }
-    /* end of container PORT */
-}
-/* end of module sonic-port */
+				leaf mtu {
+					type uint16 {
+						range 1..9216;
+					}
+				}
+
+				leaf admin_status {
+					mandatory true;
+					type head:admin_status;
+				}
+			} /* end of list PORT_LIST */
+
+		} /* end of container PORT */
+
+	} /* end of container sonic-port */
+
+} /* end of module sonic-port */
