@@ -1,5 +1,5 @@
 {
-	"yangTest1": {
+	"WRONG_FAMILY_WITH_IP_PREFIX": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_INTERFACE": {
 				"VLAN_INTERFACE_LIST": [{
@@ -18,7 +18,7 @@
 		}
 	},
 
-	"yangTest2": {
+	"DHCP_SERVER_INCORRECT_FORMAT": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
@@ -34,7 +34,7 @@
 		}
 	},
 
-	"yangTest3": {
+	"VLAN_HAS_NON_EXIST_PORT": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
@@ -73,7 +73,7 @@
 		}
 	},
 
-	"yangTest4": {
+	"VLAN_MEMEBER_WITH_NON_EXIST_VLAN": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
@@ -108,7 +108,7 @@
 		}
 	},
 
-	"yangTest5": {
+	"TAGGING_MODE_WRONG_VALUE": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
@@ -138,7 +138,7 @@
 		}
 	},
 
-	"yangTest6": {
+	"INTERFACE_IP_PREFIX_EMPTY_STRING": {
 		"sonic-interface:sonic-interface": {
 			"sonic-interface:INTERFACE": {
 				"INTERFACE_LIST": [{
@@ -163,7 +163,7 @@
 		}
 	},
 
-	"yangTest7": {
+	"ACL_RULE_UNDEFINED_PACKET_ACTION": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -209,7 +209,7 @@
 		}
 	},
 
-	"yangTest8": {
+	"ACL_TABLE_UNDEFINED_TABLE_TYPE": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_TABLE": {
 				"ACL_TABLE_LIST": [{
@@ -244,7 +244,7 @@
 		}
 	},
 
-	"yangTest9": {
+	"ACL_RULE_WITH_NON_EXIST_ACL_TABLE": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -290,7 +290,7 @@
 		}
 	},
 
-	"yangTest10": {
+	"ACL_RULE_IP_TYPE_SRC_IPV6_MISMATCH": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -335,7 +335,7 @@
 		}
 	},
 
-	"yangTest11": {
+	"ACL_RULE_ARP_TYPE_DST_IPV6_MISMATCH": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -380,7 +380,7 @@
 		}
 	},
 
-	"yangTest12": {
+	"ACL_RULE_WRONG_L4_SRC_PORT_RANGE": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -427,7 +427,7 @@
 		}
 	},
 
-	"yangTest13": {
+	"ACL_RULE_ARP_TYPE_ICMPV6_CODE_MISMATCH": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
@@ -475,7 +475,7 @@
 		}
 	},
 
-	"yangTest14": {
+	"ACL_RULE_WRONG_INNER_ETHER_TYPE": {
 		"sonic-acl:sonic-acl": {
 			"sonic-acl:ACL_RULE": {
 				"ACL_RULE_LIST": [{
