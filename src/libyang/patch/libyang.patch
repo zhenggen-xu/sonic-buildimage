@@ -75,24 +75,19 @@ index fdfa402b..f75ba184 100644
 -Build-Depends: debhelper (>= 9), make, gcc, doxygen, cmake, pkg-config, libpcre3-dev, libcmocka-dev, python3-dev, g++, swig (>= 3.0.12)
 +Build-Depends: debhelper (>= 9), make, gcc, doxygen, cmake, pkg-config, libpcre3-dev, libcmocka-dev, python3-dev, python2-dev, g++, swig (>= 3.0.12)
 diff --git a/packages/libyang.spec.in b/packages/libyang.spec.in
-index 6a4ac615..24431f1e 100644
+index 6a4ac615..6939f028 100644
 --- a/packages/libyang.spec.in
 +++ b/packages/libyang.spec.in
-@@ -48,6 +48,13 @@ BuildRequires:  python34-devel
+@@ -46,6 +46,8 @@ BuildRequires:  python3-devel
+ %else
+ BuildRequires:  python34-devel
  %endif
- %endif
- 
-+%if 0%{?suse_version} + 0%{?fedora} > 0
-+BuildRequires:  python2-devel
-+%else
-+BuildRequires:  python2-devel
-+%endif
-+%endif
 +
- Conflicts: @CONFLICT_PACKAGE_NAME@ = @LIBYANG_MAJOR_VERSION@.@LIBYANG_MINOR_VERSION@
++BuildRequires:  python2-devel
+ %endif
  
- %package devel
-@@ -70,6 +77,11 @@ Summary:    Binding to python
+ Conflicts: @CONFLICT_PACKAGE_NAME@ = @LIBYANG_MAJOR_VERSION@.@LIBYANG_MINOR_VERSION@
+@@ -70,6 +72,11 @@ Summary:    Binding to python
  Requires:   libyang-cpp@PACKAGE_PART_NAME@ = %{version}-%{release}
  Requires:   %{name} = %{version}-%{release}
  
@@ -104,7 +99,7 @@ index 6a4ac615..24431f1e 100644
  %description -n libyang-cpp@PACKAGE_PART_NAME@
  Bindings of libyang library to C++ language.
  
-@@ -80,6 +92,10 @@ Headers of bindings to c++ language.
+@@ -80,6 +87,10 @@ Headers of bindings to c++ language.
  Bindings of libyang library to python language.
  %endif
  
@@ -115,7 +110,7 @@ index 6a4ac615..24431f1e 100644
  %description devel
  Headers of libyang library.
  
-@@ -167,4 +183,9 @@ make DESTDIR=%{buildroot} install
+@@ -167,4 +178,9 @@ make DESTDIR=%{buildroot} install
  %{_libdir}/python*
  %endif
  
