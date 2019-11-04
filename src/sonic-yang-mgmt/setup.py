@@ -8,11 +8,10 @@ from setuptools.command.build_py import build_py
 from os import system
 from sys import exit
 
-
 # important reuirements parameters
-build_requirements = ['../../target/debs/stretch/libyang0.16_0.16.105-1_amd64.deb',
-                      '../../target/debs/stretch/libyang-cpp0.16_0.16.105-1_amd64.deb',
-                      '../../target/debs/stretch/python2-yang_0.16.105-1_amd64.deb']
+build_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
+                      '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
+                      '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb']
 
 install_requirements = []
 
