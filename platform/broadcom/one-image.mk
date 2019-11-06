@@ -8,6 +8,7 @@ $(SONIC_ONE_IMAGE)_INSTALLS += $(SYSTEMD_SONIC_GENERATOR)
 $(SONIC_ONE_IMAGE)_LAZY_INSTALLS += $(DELL_S6000_PLATFORM_MODULE) \
                                $(DELL_Z9264F_PLATFORM_MODULE) \
                                $(DELL_S5232F_PLATFORM_MODULE) \
+                               $(DELL_S5248F_PLATFORM_MODULE) \
                                $(DELL_Z9100_PLATFORM_MODULE) \
                                $(DELL_S6100_PLATFORM_MODULE) \
                                $(INGRASYS_S8900_54XC_PLATFORM_MODULE) \
@@ -53,7 +54,8 @@ $(SONIC_ONE_IMAGE)_LAZY_INSTALLS += $(DELL_S6000_PLATFORM_MODULE) \
                                $(ALPHANETWORKS_SNH60B0_640F_PLATFORM_MODULE) \
                                $(BRCM_XLR_GTS_PLATFORM_MODULE) \
                                $(DELTA_AG9032V2A_PLATFORM_MODULE) \
-                               $(JUNIPER_QFX5210_PLATFORM_MODULE)
+                               $(JUNIPER_QFX5210_PLATFORM_MODULE) \
+                               $(CEL_SILVERSTONE_PLATFORM_MODULE)
 ifeq ($(INSTALL_DEBUG_TOOLS),y)
 $(SONIC_ONE_IMAGE)_DOCKERS += $(SONIC_INSTALL_DOCKER_DBG_IMAGES)
 $(SONIC_ONE_IMAGE)_DOCKERS += $(filter-out $(patsubst %-$(DBG_IMAGE_MARK).gz,%.gz, $(SONIC_INSTALL_DOCKER_DBG_IMAGES)), $(SONIC_INSTALL_DOCKER_IMAGES))

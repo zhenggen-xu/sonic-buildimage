@@ -132,16 +132,11 @@ fi
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install busybox
 echo '[INFO] Install SONiC linux kernel image'
 ## Note: duplicate apt-get command to ensure every line return zero
-if [[ $CONFIGURED_ARCH == armhf || $CONFIGURED_ARCH == arm64 ]]; then
-    sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install cpio klibc-utils kmod libklibc udev linux-base
-    sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/linux-image-*${CONFIGURED_ARCH}*.deb || \
-        sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install -f
-fi
 sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/initramfs-tools-core_*.deb || \
     sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install -f
 sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/initramfs-tools_*.deb || \
     sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install -f
-sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/linux-image-${LINUX_KERNEL_VERSION}-${CONFIGURED_ARCH}_*.deb || \
+sudo dpkg --root=$FILESYSTEM_ROOT -i $debs_path/linux-image-${LINUX_KERNEL_VERSION}-*_${CONFIGURED_ARCH}.deb || \
     sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install -f
 sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install acl
 [[ $CONFIGURED_ARCH == amd64 ]] && sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install dmidecode
@@ -170,7 +165,7 @@ sudo chmod +x $FILESYSTEM_ROOT/etc/initramfs-tools/scripts/init-premount/resize-
 
 ## Hook into initramfs: after partition mount and loop file mount
 ## 1. Prepare layered file system
-## 2. Bind-mount docker working directory (docker aufs cannot work over aufs rootfs)
+## 2. Bind-mount docker working directory (docker overlay storage cannot work over overlay rootfs)
 sudo cp files/initramfs-tools/union-mount $FILESYSTEM_ROOT/etc/initramfs-tools/scripts/init-bottom/union-mount
 sudo chmod +x $FILESYSTEM_ROOT/etc/initramfs-tools/scripts/init-bottom/union-mount
 sudo cp files/initramfs-tools/varlog $FILESYSTEM_ROOT/etc/initramfs-tools/scripts/init-bottom/varlog
@@ -206,7 +201,7 @@ sudo LANG=C chroot $FILESYSTEM_ROOT apt-get update
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y install docker-ce=${DOCKER_VERSION}
 sudo LANG=C chroot $FILESYSTEM_ROOT apt-get -y remove software-properties-common gnupg2
 
-## Add docker config drop-in to select aufs, otherwise it may select other storage driver
+## Add docker config drop-in to specify dockerd command line
 sudo mkdir -p $FILESYSTEM_ROOT/etc/systemd/system/docker.service.d/
 ## Note: $_ means last argument of last command
 sudo cp files/docker/docker.service.conf $_
@@ -286,6 +281,13 @@ sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y in
     flashrom                \
     mcelog
 fi
+
+## Set /etc/shadow permissions to -rw-------.
+sudo LANG=c chroot $FILESYSTEM_ROOT chmod 600 /etc/shadow
+
+## Set /etc/passwd, /etc/group permissions to -rw-r--r--.
+sudo LANG=c chroot $FILESYSTEM_ROOT chmod 644 /etc/passwd
+sudo LANG=c chroot $FILESYSTEM_ROOT chmod 644 /etc/group
 
 #Adds a locale to a debian system in non-interactive mode
 sudo sed -i '/^#.* en_US.* /s/^#//' $FILESYSTEM_ROOT/etc/locale.gen && \
