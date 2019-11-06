@@ -11,9 +11,7 @@ import pytest
 import os
 
 # important reuirements parameters
-build_requirements = ['target/debs/stretch/libyang_1.0.73_amd64.deb']
-
-install_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
+build_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
                         '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
                         '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb',]
 
@@ -36,16 +34,8 @@ class pkgBuild(build_py):
         yang_model_dir = './yang-models/'
         # yang model tester python module
         yang_test_py = './tests/yang-model-tests/yangModelTesting.py'
-        #  build libyang
-        for req in build_requirements:
-            if (not os.path.exists(req)):
-                pkg_build_cmd = "cd ../..; make -f slave.mk {}".format(req)
-                if (system(pkg_build_cmd)):
-                    print("{} build failed".format(req))
-                    exit(1)
-
         #  install libyang
-        for req in install_requirements:
+        for req in build_requirements:
             if 'target/debs'in req:
                 pkg_install_cmd = "sudo dpkg -i {}".format(req)
                 if (system(pkg_install_cmd)):
