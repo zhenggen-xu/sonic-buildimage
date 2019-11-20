@@ -153,7 +153,7 @@ class YangModelTesting:
             for test in self.tests:
                 test = test.strip()
                 if test in self.ExceptionTests:
-                    self.runExceptionTest(test);
+                    ret = ret + self.runExceptionTest(test);
         except Exception as e:
             printExceptionDetails()
             raise e
