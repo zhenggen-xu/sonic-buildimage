@@ -32,7 +32,11 @@ def db_connect_configdb():
     config_db = ConfigDBConnector()
     if config_db is None:
         return None
-    config_db.connect()
+    try:
+        config_db.connect()
+    except Exception as e:
+        print("Config DB is not available with error {}".format(str(e)))
+        config_db = None
     return config_db
 
 def get_port_config_file_name(hwsku=None, platform=None):
