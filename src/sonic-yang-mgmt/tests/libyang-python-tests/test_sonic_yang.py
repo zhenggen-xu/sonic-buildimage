@@ -1,12 +1,12 @@
 import sys
 import os
 import pytest
-from unittest import TestCase
 import yang as ly
 import sonic_yang as sy
 import json
 import getopt
 import subprocess
+import glob
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 modules_path = os.path.dirname(test_path)
@@ -24,9 +24,6 @@ class Test_SonicYang(object):
         yang_dir = str(data['yang_dir'])
         data_file = str(data['data_file'])
         yang_s = sy.sonic_yang(yang_dir)
-        yang_s.load_schema_modules(yang_dir)
-
-        root = yang_s.load_data_file(data_file)
         return yang_s
 
     def jsonTestParser(self, file):
@@ -41,26 +38,31 @@ class Test_SonicYang(object):
         pass
 
     def load_yang_model_file(self, yang_s, yang_dir, yang_file, module_name):
-        yfile=yang_dir+yang_file
-        module = yang_s.load_schema_module(yfile)
-
-        if (module is None):
-            print("Module is None")
-            return False
-
-        if (yang_s.get_module(module_name) is None):
-            print("get Module is None")
-            return False
-        else:
-            return True
+        yfile = yang_dir + yang_file
+        try:
+	    yang_s.load_schema_module(str(yfile))
+	except Exception as e:
+            print(e)
+            raise
 
     #test load and get yang module
     def test_load_yang_model_files(self, data, yang_s):
         yang_dir = data['yang_dir']
         for module in data['modules']:
             file = str(module['file'])
-            status = self.load_yang_model_file(yang_s, yang_dir, file, str(module['module']))
-            assert status == True
+            module = str(module['module'])
+
+            self.load_yang_model_file(yang_s, yang_dir, file, module)
+            assert yang_s.get_module(module) is not None
+
+    #test load non-exist yang module file
+    def test_load_invalid_model_files(self, data, yang_s):
+        yang_dir = data['yang_dir']
+        file = "invalid.yang"
+        module = "invalid"
+
+        with pytest.raises(Exception):
+             assert self.load_yang_model_file(yang_s, yang_dir, file, module)
 
     #test load yang modules in directory
     def test_load_yang_model_dir(self, data, yang_s):
@@ -68,12 +70,29 @@ class Test_SonicYang(object):
         yang_s.load_schema_modules(str(yang_dir))
 
         for module_name in data['modules']:
-            print(module_name['module'])
             assert yang_s.get_module(str(module_name['module'])) is not None
+
+    #test load yang modules and data files
+    def test_load_yang_model_data(self, data, yang_s):
+        yang_dir = str(data['yang_dir'])
+        yang_files = glob.glob(yang_dir+"/*.yang")
+        data_file = str(data['data_file'])
+        data_merge_file = str(data['data_merge_file'])
+
+        data_files = []
+        data_files.append(data_file)
+        data_files.append(data_merge_file)
+	print(yang_files)
+        yang_s.load_data_model(yang_dir, yang_files, data_files)
+
+    #test load data file
+    def test_load_data_file(self, data, yang_s):
+        data_file = str(data['data_file'])
+        yang_s.load_data_file(data_file)
 
     #test_validate_data_tree():
     def test_validate_data_tree(self, data, yang_s):
-        assert yang_s.validate_data_tree() == True
+        yang_s.validate_data_tree()
 
     #test find node
     def test_find_node(self, data, yang_s):
@@ -113,16 +132,14 @@ class Test_SonicYang(object):
         for node in data['delete_nodes']:
             expected = node['valid']
             xpath = str(node['xpath'])
-            status = yang_s.delete_node(xpath)
-            assert str(status) == expected
+            yang_s.delete_node(xpath)
 
     #test set node's value
     def test_set_datanode_value(self, data, yang_s):
         for node in data['set_nodes']:
             xpath = str(node['xpath'])
             value = node['value']
-            status = yang_s.set_dnode_value(xpath, value)
-            assert status == True
+            yang_s.set_dnode_value(xpath, value)
 
             val = yang_s.find_node_value(xpath)
             assert str(val) == str(value)
@@ -157,16 +174,22 @@ class Test_SonicYang(object):
             xpath = str(node['xpath'])
             list = node['dependencies']
             depend = yang_s.find_data_dependencies(xpath)
-            print(depend)
+            assert set(depend) == set(list)
+
+    #test data dependencies
+    def test_find_schema_dependencies(self, yang_s, data):
+        for node in data['schema_dependencies']:
+            xpath = str(node['xpath'])
+            list = node['schema_dependencies']
+            depend = yang_s.find_schema_dependencies(xpath)
             assert set(depend) == set(list)
 
     #test merge data tree
     def test_merge_data_tree(self, data, yang_s):
         data_merge_file = data['data_merge_file']
-        yang_dir = data['yang_dir']
-        rc = yang_s.merge_data(yang_dir, data_merge_file)
-        yang_s.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
-        assert rc == 0
+        yang_dir = str(data['yang_dir'])
+        yang_s.merge_data(data_merge_file, yang_dir)
+        #yang_s.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
 
     def teardown_class(cls):
         pass
