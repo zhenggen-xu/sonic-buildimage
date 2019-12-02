@@ -1,0 +1,103 @@
+{
+  "yang_dir":"/sonic/src/sonic-yang-mgmt/yang-models/",
+  "data_file":"/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/sonic_config_data.json",
+  "data_merge_file":"/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/sonic_config_data_merge.json",
+  "modules":[
+    {"file":"sonic-head.yang", "module":"sonic-head"},
+    {"file":"sonic-port.yang", "module":"sonic-port"},
+    {"file":"sonic-acl.yang",  "module":"sonic-acl"},
+    {"file":"sonic-interface.yang", "module":"sonic-interface"},
+    {"file":"sonic-portchannel.yang", "module":"sonic-portchannel"},
+    {"file":"sonic-vlan.yang", "module":"sonic-vlan"}
+    ],
+
+  "new_nodes":[
+    {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet12']/alias", "value":"Ethernet10_alias"},
+    {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet12']/speed", "value":"5000"},
+    {"xpath":"/sonic-acl:sonic-acl/ACL_RULE/ACL_RULE_LIST[ACL_TABLE_NAME='PACL-test'][RULE_NAME='rule_20']/RULE_NAME",
+     "value":"rule_20"}
+  ],
+
+  "data_nodes":[
+	  {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/alias",  "valid":"True"},
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet20']/alias", "valid":"False"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE", "valid":"True"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST", "valid":"False"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='2000:f500:45:6709::/64']", "valid":"True"}
+  ],
+
+  "set_nodes":[
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet10']/speed",  "value":"10000"},
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/mtu",     "value":"1500"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN/VLAN_LIST[vlanid='111']/description",      "value":"server_vlan111"}
+  ],
+
+  "node_values":[
+    {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/speed",  "value":"25000"},
+    {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='2000:f500:45:6709::/64']/family",
+	   "value":"IPv6"}
+  ],
+
+  "schema_nodes":[
+     {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']/family",
+      "value":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_INTERFACE/sonic-vlan:VLAN_INTERFACE_LIST/sonic-vlan:family"},
+     {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/speed",
+      "value":"/sonic-port:sonic-port/sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:speed"}
+  ],
+
+  "delete_nodes":[
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet10']/speed",  "valid":"False"},
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/mtu",     "valid":"True"},
+          {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet20']/mtu",    "valid":"False"}
+  ],
+
+  "dependencies":[
+	  {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet8']/port_name",
+           "dependencies":
+                 ["/sonic-vlan:sonic-vlan/VLAN/VLAN_LIST[vlanid='111']/members[.='Ethernet8']",
+                  "/sonic-vlan:sonic-vlan/VLAN/VLAN_LIST[vlanid='555']/members[.='Ethernet8']",
+                  "/sonic-acl:sonic-acl/ACL_TABLE/ACL_TABLE_LIST[ACL_TABLE_NAME='PACL-V6']/ports[.='Ethernet8']",
+                  "/sonic-interface:sonic-interface/INTERFACE/INTERFACE_LIST[interface='Ethernet8'][ip-prefix='10.1.1.64/26']/interface",
+                  "/sonic-interface:sonic-interface/INTERFACE/INTERFACE_LIST[interface='Ethernet8'][ip-prefix='2000:f500:40:a749::/126']/interface"]}
+  ],
+  "schema_dependencies":[
+          {"xpath":"/sonic-port:sonic-port/sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name",
+           "schema_dependencies":
+                 ["/sonic-acl:sonic-acl/sonic-acl:ACL_TABLE/sonic-acl:ACL_TABLE_LIST/sonic-acl:ports",
+                  "/sonic-portchannel:sonic-portchannel/sonic-portchannel:PORTCHANNEL/sonic-portchannel:PORTCHANNEL_LIST/sonic-portchannel:members",
+                  "/sonic-interface:sonic-interface/sonic-interface:INTERFACE/sonic-interface:INTERFACE_LIST/sonic-interface:interface",
+                  "/sonic-vlan:sonic-vlan/sonic-vlan:VLAN/sonic-vlan:VLAN_LIST/sonic-vlan:members",
+                  "/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_MEMBER/sonic-vlan:VLAN_MEMBER_LIST/sonic-vlan:port"]}
+  ],
+  "members":[
+	  {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST",
+           "members":
+		  ["/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet0']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet1']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet2']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet3']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet4']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet5']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet6']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet7']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet8']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']",
+                   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet10']",
+		   "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet12']"]}
+  ],
+
+  "parents":[
+	  {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='2000:f500:45:6709::/64']/family",
+           "parent":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='2000:f500:45:6709::/64']"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']/scope",
+           "parent":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']/vlanid",
+           "parent":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']/ip-prefix",
+           "parent":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']"},
+          {"xpath":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']/family",
+           "parent":"/sonic-vlan:sonic-vlan/VLAN_INTERFACE/VLAN_INTERFACE_LIST[vlanid='111'][ip-prefix='10.1.1.64/26']"},
+	  {"xpath":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']/speed",
+           "parent":"/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']"}
+  ]
+}

@@ -7,17 +7,17 @@ from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 from os import system
 from sys import exit
+import pytest
+import os
 
 # important reuirements parameters
 build_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
-                      '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
-                      '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb']
+                        '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
+                        '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb',]
 
-install_requirements = []
+setup_requirements = ['pytest-runner']
 
-setup_requirements = ['pytest-runner',]
-
-test_requirements = ['pytest>=3', ]
+test_requirements = ['pytest>=3']
 
 # read me
 with open('README.rst') as readme_file:
@@ -39,9 +39,10 @@ class pkgBuild(build_py):
             if 'target/debs'in req:
                 pkg_install_cmd = "sudo dpkg -i {}".format(req)
                 if (system(pkg_install_cmd)):
-                    print("{} installed".format(req))
+                    print("{} installation failed".format(req))
+                    exit(1)
                 else:
-                    print("{} installtion failed".format(req))
+                    print("{} installed".format(req))
 
         #  run tests for yang models
         test_yang_cmd = "python {} -f {} -y {}".format(yang_test_py, test_yangJson_file, yang_model_dir)
@@ -53,8 +54,13 @@ class pkgBuild(build_py):
             print("YANG Tests passed\n")
 
         # Continue usual build steps
-        build_py.run(self)
+        # run pytest for libyang python APIs
+        self.pytest_args = []
+        errno = pytest.main(self.pytest_args)
+        if (errno):
+            exit(errno)
 
+        build_py.run(self)
 
 setup(
     cmdclass={
@@ -77,12 +83,13 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     description="Package contains YANG models for sonic.",
-    install_requires=install_requirements,
+    tests_require = test_requirements,
     license="GNU General Public License v3",
     long_description=readme + '\n\n',
     include_package_data=True,
     keywords='sonic_yang_mgmt',
     name='sonic_yang_mgmt',
+    py_modules=['sonic_yang'],
     packages=find_packages(),
     setup_requires=setup_requirements,
     version='1.0',
