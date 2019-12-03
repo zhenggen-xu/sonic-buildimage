@@ -1,7 +1,6 @@
 import yang as ly
-import sys
-import json
-import glob
+from json import dump
+from glob import glob
 
 """
 Yang schema and data tree python APIs based on libyang python
@@ -13,6 +12,13 @@ class sonic_yang:
         self.module = None
         self.root = None
 
+        # yang model files, need this map it to module
+        self.yangFiles = list()
+        # map from TABLE in config DB to container and module
+        self.confDbYangMap = dict()
+        # JSON format of yang model [similar to pyang conversion]
+        self.yJson = list()
+
         try:
             self.ctx = ly.Context(yang_dir)
         except Exception as e:
@@ -21,6 +27,11 @@ class sonic_yang:
     def fail(self, e):
 	print(e)
 	raise e
+
+    """
+    import all function from extension file
+    """
+    from _sonic_yang_ext import *
 
     """
     load_schema_module(): load a Yang model file
@@ -52,7 +63,7 @@ class sonic_yang:
     returns:  Exception if error
     """
     def load_schema_modules(self, yang_dir):
-        py = glob.glob(yang_dir+"/*.yang")
+        py = glob(yang_dir+"/*.yang")
         for file in py:
             try:
                 self.load_schema_module(file)
@@ -150,8 +161,7 @@ class sonic_yang:
         else:
             mem = self.root.print_mem(ly.LYD_XML, ly.LYP_WITHSIBLINGS | ly.LYP_FORMAT)
 
-        print("======================= print data =================")
-        print(mem)
+        return mem
 
     """
     save_data_file_json(): save the data tree in memory into json file
@@ -160,7 +170,7 @@ class sonic_yang:
     def save_data_file_json(self, outfile):
         mem = self.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
         with open(outfile, 'w') as out:
-            json.dump(mem, out, indent=4)
+            dump(mem, out, indent=4)
 
     """
     get_module_tree(): get yang module tree in JSON or XMAL format
@@ -366,19 +376,26 @@ class sonic_yang:
             self.fail(e)
 
     """
-    delete_node(): delete a node from the schema/data tree
+    _delete_node(): delete a node from the schema/data tree, internal function
     input:    xpath of the schema/data node
     returns:  True - success   False - failed
     """
-    def delete_node(self, data_xpath):
-        try:
-            node = self.find_data_node(data_xpath)
-        except Exception as e:
-            print("Failed to delete data node for xpath: " + str(data_xpath))
-            self.fail(e)
+    def _delete_node(self, xpath=None, node=None):
+        if node is None:
+            node = self.find_data_node(xpath)
+
+        if (node):
+            node.unlink()
+            dnode = self.find_data_node(xpath)
+            if (dnode is None):
+                #deleted node not found
+                return True
+            else:
+                #node still exists
+                return False
         else:
-            if (node):
-                node.unlink()
+            print("delete_node(): Did not found the node, xpath: " + xpath)
+            return False
 
     """
     find_node_value():  find the value of a node from the schema/data tree
@@ -487,4 +504,3 @@ class sonic_yang:
                           ref_list.append(data_set.path())
 
         return ref_list
-
