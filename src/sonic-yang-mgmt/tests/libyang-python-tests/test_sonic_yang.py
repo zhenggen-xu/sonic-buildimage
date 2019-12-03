@@ -196,26 +196,20 @@ class Test_SonicYang(object):
         test_dir = "/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/";
         configFile = "sample_config_db.json"
         croppedFile = "cropped_" + configFile
+        xlateFile = "xlate_" +  configFile
         # append dir
         configFile = test_dir + configFile
         croppedFile = test_dir + croppedFile
-
-        yang_s.loadYangModel()
-        # load config from config_db.json or from config DB
+        xlateFile = test_dir + xlateFile
+        # Read the config
         with open(configFile) as f:
-            yang_s.jIn = json.load(f)
-
-        print("Table Before Cropping")
-        for table in yang_s.jIn.keys():
-            print(table)
-
-        # crop the config as per yang models
-        yang_s.cropConfigDB(croppedFile)
-
-        # Verification will be added with xlate and rev xlate functionality
-        print("Table After Cropping")
-        for table in yang_s.jIn.keys():
-            print(table)
+            jIn = json.load(f)
+        # Load Yang Models
+        yang_s.loadYangModel()
+        # Load cropped, xlated Config
+        yang_s.load_data(jIn)
+        #Validate the Data tree
+        assert yang_s.validate_data_tree() == True
 
         return
 

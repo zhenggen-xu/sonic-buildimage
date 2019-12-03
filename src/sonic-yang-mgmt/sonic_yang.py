@@ -18,6 +18,8 @@ class sonic_yang:
         self.confDbYangMap = dict()
         # JSON format of yang model [similar to pyang conversion]
         self.yJson = list()
+        # YANG JSON, this is traslated from config DB json
+        self.xlateJson = dict()
 
         try:
             self.ctx = ly.Context(yang_dir)
