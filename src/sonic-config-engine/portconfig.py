@@ -184,7 +184,7 @@ def gen_port_config(ports, intf, match_list, index, alias_at_lanes, lanes):
             else:
                 raise Exception('Regex return for num_lane_used is None...')
 
-def parse_platform_json_file(port_config_file, brkout_mode=None):
+def parse_platform_json_file(port_config_file, interface_name=None, target_brkout_mode=None):
     ports = {}
     port_alias_map = {}
 
@@ -201,6 +201,10 @@ def parse_platform_json_file(port_config_file, brkout_mode=None):
         print("error occurred while parsing json:", sys.exc_info()[1])
 
     for intf in port_dict:
+        if str(interface_name) == intf:
+            brkout_mode = target_brkout_mode
+        else:
+            brkout_mode = port_dict[intf][BRKOUT_MODE]
         index = port_dict[intf]['index']
         alias_at_lanes = port_dict[intf]['alias_at_lanes']
         lanes = port_dict[intf]['lanes']
