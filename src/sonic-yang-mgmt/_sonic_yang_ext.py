@@ -11,11 +11,6 @@ from os import listdir, walk, path
 from os.path import isfile, join, splitext
 from glob import glob
 
-prt = pprint.PrettyPrinter(indent=4)
-def prtprint(obj):
-    prt.pprint(obj)
-    return
-
 # class sonic_yang methods
 
 """
@@ -150,9 +145,12 @@ Delete a node from data tree, if this is LEAF and KEY Delete the Parent
 """
 def delete_node(self, xpath):
 
-    # These MACROS used only here
+    # These MACROS used only here, can we get it from Libyang Header ?
     LYS_LEAF = 4
     node = self.find_data_node(xpath)
+    if node is None:
+        return False
+
     snode = node.schema()
     # check for a leaf if it is a key. If yes delete the parent
     if (snode.nodetype() == LYS_LEAF):
@@ -168,43 +166,3 @@ def delete_node(self, xpath):
     return True
 
 # End of class sonic_yang
-
-# Test functions
-def test_xlate_rev_xlate():
-    configFile = "sample_config_db.json"
-    croppedFile = "cropped_" + configFile
-    xlateFile = "xlate_" + configFile
-    revXlateFile = "rev_" + configFile
-
-    # load yang models
-    sy = sonic_yang("../../../yang-models")
-    # load yang models
-    sy.loadYangModel()
-    # create a mapping bw DB table and yang model containers
-    sy.createDBTableToModuleMap()
-    # load config from config_db.json or from config DB
-    sy.jIn = readJsonFile(configFile))
-    # crop the config as per yang models
-    sy.cropConfigDB(croppedFile)
-    # xlate the config as per yang models
-    #sy.xlateConfigDB(xlateFile)
-    # reverse xlate the config
-    #sy.revXlateConfigDB(revXlateFile)
-    # compare cropped config and rex xlated config
-
-    #if sy.jIn == sy.revXlateJson:
-    #    print("Xlate and Rev Xlate Passed")
-    #else:
-    #    print("Xlate and Rev Xlate failed")
-    #    from jsondiff import diff
-    #    prtprint(diff(sy.jIn, sy.revXlateJson, syntax='symmetric'))
-
-    return
-
-def main():
-    # test xlate and rev xlate
-    test_xlate_rev_xlate()
-    return
-
-if __name__ == "__main__":
-    main()

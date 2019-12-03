@@ -22,11 +22,11 @@ class sonic_yang:
         try:
             self.ctx = ly.Context(yang_dir)
         except Exception as e:
-	    self.fail(e)
+            self.fail(e)
 
     def fail(self, e):
-	print(e)
-	raise e
+        print(e)
+        raise e
 
     """
     import all function from extension file
@@ -43,7 +43,7 @@ class sonic_yang:
             self.ctx.parse_module_path(yang_file, ly.LYS_IN_YANG)
         except Exception as e:
             print("Failed to load yang module file: " + yang_file)
-	    self.fail(e)
+            self.fail(e)
 
     """
     load_schema_module_list(): load all Yang model files in the list
@@ -81,7 +81,7 @@ class sonic_yang:
 
         ctx = ly.Context(yang_dir)
 
-        py = glob.glob(yang_dir+"/*.yang")
+        py = glob(yang_dir+"/*.yang")
         for file in py:
             try:
                 ctx.parse_module_path(str(file), ly.LYS_IN_YANG)

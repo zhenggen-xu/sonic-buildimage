@@ -53,13 +53,13 @@ class pkgBuild(build_py):
         else:
             print("YANG Tests passed\n")
 
-        # Continue usual build steps
         # run pytest for libyang python APIs
         self.pytest_args = []
         errno = pytest.main(self.pytest_args)
         if (errno):
             exit(errno)
 
+        # Continue usual build steps
         build_py.run(self)
 
 setup(
