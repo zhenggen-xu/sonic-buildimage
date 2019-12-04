@@ -7,17 +7,20 @@ import json
 import getopt
 import subprocess
 import glob
+from ijson import items as ijson_itmes
 
 test_path = os.path.dirname(os.path.abspath(__file__))
-modules_path = os.path.dirname(blocked_test_path)
+modules_path = os.path.dirname(test_path)
 sys.path.insert(0, modules_path)
 
 class Test_SonicYang(object):
+    # class vars
+    yang_test_file = "/sonic/src/sonic-yang-mgmt/tests/yang-model-tests/yangTest.json"
+
     @pytest.fixture(autouse=True, scope='class')
     def data(self):
-        test_file = "/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/blocked_test_SonicYang.json"
-        yang_test_file = "/sonic/src/sonic-yang-mgmt/tests/yang-model-tests/yangTest.json"
-        data = self.jsonTestParser(blocked_test_file)
+        test_file = "/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/test_SonicYang.json"
+        data = self.jsonTestParser(test_file)
         return data
 
     @pytest.fixture(autouse=True, scope='class')
@@ -39,19 +42,19 @@ class Test_SonicYang(object):
         Get the JSON input based on func name
         and return jsonInput
     """
-    def readiJsonInput(self, test):
+    def readIjsonInput(self, test):
         try:
             # load test specific Dictionary, using Key = func
             # this is to avoid loading very large JSON in memory
-            log.debug(" Read JSON Section: " + test)
+            print(" Read JSON Section: " + test)
             jInput = ""
-            with open(yang_test_file, 'rb') as f:
-                jInst = ijson.items(f, test)
+            with open(self.yang_test_file, 'rb') as f:
+                jInst = ijson_itmes(f, test)
                 for it in jInst:
                     jInput = jInput + json.dumps(it)
-            log.debug(jInput)
         except Exception as e:
-            printExceptionDetails()
+            print("Reading Ijson failed")
+            raise(e)
         return jInput
 
     def setup_class(cls):
@@ -214,20 +217,20 @@ class Test_SonicYang(object):
     def test_xlate_rev_xlate(self, yang_s):
 
         # read the config
-        jIn = readiJsonInput('SAMPLE_CONFIG_DB_JSON')
+        jIn = self.readIjsonInput('SAMPLE_CONFIG_DB_JSON')
         # load yang models
         yang_s.loadYangModel()
 
-        yang_s.load_data(jIn)
+        yang_s.load_data(json.loads(jIn))
 
-        #yang_s.get_data()
+        yang_s.get_data()
 
-        #if yang_s.jIn == yang_s.revXlateJson:
-        #    print("Xlate and Rev Xlate Passed")
-        #else:
-        #    print("Xlate and Rev Xlate failed")
-        #    from jsondiff import diff
-        #    prtprint(diff(yang_s.jIn, yang_s.revXlateJson, syntax='symmetric'))
+        if yang_s.jIn == yang_s.revXlateJson:
+            print("Xlate and Rev Xlate Passed")
+        else:
+            print("Xlate and Rev Xlate failed")
+            from jsondiff import diff
+            prtprint(diff(yang_s.jIn, yang_s.revXlateJson, syntax='symmetric'))
 
         return
 

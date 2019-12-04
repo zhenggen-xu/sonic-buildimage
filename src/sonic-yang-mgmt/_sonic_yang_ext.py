@@ -326,6 +326,223 @@ def xlateConfigDB(self, xlateFile=None):
     return
 
 """
+create config DB table key from entry in yang JSON
+"""
+def createKey(self, entry, regex):
+
+    keyDict = dict()
+    keyV = regex
+    # get the keys from regex of key extractor
+    keyList = re.findall(r'<(.*?)>', regex)
+    for key in keyList:
+        val = entry.get(key)
+        if val:
+            #print("pair: {} {}".format(key, val))
+            keyDict[key] = sval = str(val)
+            keyV = re.sub(r'<'+key+'>', sval, keyV)
+            #print("VAL: {} {}".format(regex, keyV))
+        else:
+            raise Exception("key {} not found in entry".format(key))
+    #print("kDict {}".format(keyDict))
+    return keyV, keyDict
+
+"""
+Convert a string from Config DB value to Yang Value based on type of the
+key in Yang model.
+@model : A List of Leafs in Yang model list
+"""
+def revFindYangTypedValue(self, key, value, leafDict):
+
+    # convert yang Type to config DB string
+    def revYangConvert(val):
+        # config DB has only strings, thank god for that :), wait not yet!!!
+        return str(val)
+
+    # if it is a leaf-list do it for each element
+    if leafDict[key]['__isleafList']:
+        vValue = list()
+        for v in value:
+            vValue.append(revYangConvert(v))
+    else:
+        vValue = revYangConvert(value)
+
+    return vValue
+
+
+"""
+Rev xlate from <TABLE>_LIST to table in config DB
+"""
+def revXlateList(self, model, yang, config, table):
+
+    # TODO: define a keyExt dict as of now, but we should be able to
+    # extract this from YANG model extentions.
+    keyExt = {
+        "VLAN_INTERFACE": "<vlan_name>|<ip-prefix>",
+        "ACL_RULE": "<ACL_TABLE_NAME>|<RULE_NAME>",
+        "VLAN": "<vlan_name>",
+        "VLAN_MEMBER": "<vlan_name>|<port>",
+        "ACL_TABLE": "<ACL_TABLE_NAME>",
+        "INTERFACE": "<interface>|<ip-prefix>",
+        "PORT": "<port_name>"
+    }
+
+    # create a dict to map each key under primary key with a dict yang model.
+    # This is done to improve performance of mapping from values of TABLEs in
+    # config DB to leaf in YANG LIST.
+    leafDict = self.createLeafDict(model)
+
+    # list with name <TABLE>_LIST should be removed,
+    # right now we have only this instance of LIST
+    if model['@name'] == table + "_LIST":
+        for entry in yang:
+            # create key of config DB table
+            pkey, pkeydict = self.createKey(entry, keyExt[table])
+            config[pkey]= dict()
+            # fill rest of the entries
+            for key in entry:
+                if key not in pkeydict:
+                    config[pkey][key] = self.revFindYangTypedValue(key, \
+                        entry[key], leafDict)
+
+    return
+
+"""
+Rev xlate from yang container to table in config DB
+"""
+def revXlateContainer(self, model, yang, config, table):
+
+    # Note: right now containers has only LISTs.
+    # IF container has only one list
+    if isinstance(model['list'], dict):
+        modelList = model['list']
+        # Pass matching list from Yang Json
+        self.revXlateList(modelList, yang[modelList['@name']], config, table)
+    else:
+        # TODO: Container[TABLE] contains multiple lists. [Test Pending]
+        # No instance now.
+        for modelList in model['list']:
+            self.revXlateList(modelList, yang[modelList['@name']], config, table)
+
+    return
+
+"""
+rev xlate ConfigDB json to Yang json
+"""
+def revXlateYangtoConfigDB(self, yangJ, cDbJson):
+
+    yangJ = self.xlateJson
+    cDbJson = self.revXlateJson
+
+    # find table in config DB, use name as a KEY
+    for module_top in yangJ.keys():
+        # module _top will be of from module:top
+        for container in yangJ[module_top].keys():
+            #table = container.split(':')[1]
+            table = container
+            #print("revXlate " + table)
+            cmap = self.confDbYangMap[table]
+            cDbJson[table] = dict()
+            #print(key + "--" + subkey)
+            self.revXlateContainer(cmap['container'], yangJ[module_top][container], \
+                cDbJson[table], table)
+
+    return
+
+"""
+Reverse Translate tp config DB
+"""
+def revXlateConfigDB(self, revXlateFile=None):
+
+    yangJ = self.xlateJson
+    cDbJson = self.revXlateJson
+    # xlation is written in self.xlateJson
+    self.revXlateYangtoConfigDB(yangJ, cDbJson)
+
+    if revXlateFile:
+        with open(revXlateFile, 'w') as f:
+            dump(self.revXlateJson, f, indent=4)
+
+    return
+
+"""
+Find a list in YANG Container
+c = container
+l = list name
+return: list if found else None
+"""
+def findYangList(self, container, listName):
+
+    if isinstance(container['list'], dict):
+        clist = container['list']
+        if clist['@name'] == listName:
+            return clist
+
+    elif isinstance(container['list'], list):
+        clist = [l for l in container['list'] if l['@name'] == listName]
+        return clist[0]
+
+    return None
+
+"""
+Find xpath of the PORT Leaf in PORT container/list. Xpath of Leaf is needed,
+because only leaf can have leafrefs depend on them.
+"""
+def findXpathPortLeaf(self, portName):
+
+    try:
+        table = "PORT"
+        xpath = self.findXpathPort(portName)
+        module, topc, container = self.get_module_top_container(table)
+        list = self.findYangList(container, table+"_LIST")
+        xpath = xpath + "/" + list['key']['@value'].split()[0]
+    except Exception as e:
+        print("find xpath of port Leaf failed")
+        raise e
+
+    return xpath
+
+
+"""
+Find xpath of PORT
+"""
+def findXpathPort(self, portName):
+
+    try:
+        table = "PORT"
+        module, topc, container = self.get_module_top_container(table)
+        xpath = "/" + module + ":" + topc + "/" + table
+
+        list = self.findYangList(container, table+"_LIST")
+        xpath = self.findXpathList(xpath, list, [portName])
+    except Exception as e:
+        print("find xpath of port failed")
+        raise e
+
+    return xpath
+
+"""
+Find xpath of a YANG LIST from keys,
+xpath: xpath till list
+list: YANG List
+keys: list of keys in YANG LIST
+"""
+def findXpathList(self, xpath, list, keys):
+
+    try:
+        # add list name in xpath
+        xpath = xpath + "/" + list['@name']
+        listKeys = list['key']['@value'].split()
+        i = 0;
+        for listKey in listKeys:
+            xpath = xpath + '['+listKey+'=\''+keys[i]+'\']'
+            i = i + 1
+    except Exception as e:
+        print("find xpath of list failed")
+        raise e
+
+    return xpath
+
+"""
 load_data: load Config DB, crop, xlate and create data tree from it.
 input:    data
 returns:  True - success   False - failed
@@ -339,7 +556,7 @@ def load_data(self, configdbJson):
       # self.jIn will be cropped
       self.cropConfigDB()
       # xlated result will be in self.xlateJson
-      self.xlateConfigDB()
+      self.xlateConfigDB("xlateYang.json")
       #print(self.xlateJson)
       self.root = self.ctx.parse_data_mem(dumps(self.xlateJson), \
                     ly.LYD_JSON, ly.LYD_OPT_CONFIG|ly.LYD_OPT_STRICT)
@@ -350,6 +567,26 @@ def load_data(self, configdbJson):
        raise e
 
    return True
+
+"""
+Get data from Data tree, data tree will be assigned in self.xlateJson
+"""
+def get_data(self):
+
+    try:
+        self.xlateJson = self.print_data_mem('JSON')
+        # reset reverse xlate
+        self.revXlateJson = dict()
+        # print_data_mem returns in string format
+        self.xlateJson = loads(self.xlateJson)
+        # result will be stored self.revXlateJson
+        self.revXlateConfigDB("revXlateYang.json")
+
+    except Exception as e:
+        print("Get Data Tree Failed")
+        raise e
+
+    return self.revXlateJson
 
 """
 Delete a node from data tree, if this is LEAF and KEY Delete the Parent
