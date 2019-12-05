@@ -14,6 +14,8 @@ except NameError:
 # Global variable
 PORT_ATTRIBUTES = ["index", "lanes", "alias_at_lanes", "breakout_modes", "default_brkout_mode"]
 ATTR_LEN = len(PORT_ATTRIBUTES)
+PORT_REG = "Ethernet(\d+)"
+PLATFORM_JSON = '*platform.json'
 
 def usage():
     print "Usage: " + sys.argv[0] + " <platform_json_file>"
@@ -42,7 +44,7 @@ def check_file(platform_json_file):
         for each_port in port_dict:
 
             # Validate port at top level
-            port_id = re.search("Ethernet(\d+)", each_port)
+            port_id = re.search(PORT_REG, each_port)
             if port_id is  None:
                 print "Error: Unknown Interface " + str(each_port) + " at top level"
                 return False
@@ -77,7 +79,7 @@ def main(argv):
 
     # Load target file
     if len(argv) == 0:
-        files = glob.glob('*platform.json')
+        files = glob.glob(PLATFORM_JSON)
     else:
         files = argv
 
