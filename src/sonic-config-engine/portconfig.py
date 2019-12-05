@@ -1,29 +1,98 @@
 #!/usr/bin/env python
-import os
-import sys
+try:
+    import os
+    import sys
+    import json
+    import ast
+    import re
+    from collections import OrderedDict
+    from swsssdk import ConfigDBConnector
+except ImportError as e:
+    raise ImportError("%s - required module not found" % str(e))
 
+# Global Variable
+PLATFORM_ROOT_PATH = '/usr/share/sonic/device'
+PLATFORM_ROOT_PATH_DOCKER = '/usr/share/sonic/platform'
+SONIC_ROOT_PATH = '/usr/share/sonic'
+HWSKU_ROOT_PATH = '/usr/share/sonic/hwsku'
+
+PLATFORM_JSON = 'platform.json'
+PORT_CONFIG_INI = 'portconfig.ini'
+
+PORT_STR = "Ethernet"
+BRKOUT_MODE = "default_brkout_mode"
+
+BRKOUT_PATTERN = r'(\d{1,3})x(\d{1,3}G)(\[\d{1,3}G\])?(\((\d{1,3})\))?'
+
+def db_connect_configdb():
+    """
+    Connect to configdb
+    """
+    config_db = ConfigDBConnector()
+    if config_db is None:
+        return None
+    try:
+        config_db.connect()
+    except Exception as e:
+        print("Config DB is not available with error {}".format(str(e)))
+        config_db = None
+    return config_db
 
 def get_port_config_file_name(hwsku=None, platform=None):
+
+    # check 'platform.json' file presence
+    port_config_candidates_Json = []
+    port_config_candidates_Json.append(os.path.join(HWSKU_ROOT_PATH, PLATFORM_JSON))
+    if platform and hwsku:
+        port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, hwsku, PLATFORM_JSON))
+    elif platform and not hwsku:
+        port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, PLATFORM_JSON))
+    elif hwsku and not platform:
+        port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, PLATFORM_JSON))
+        port_config_candidates_Json.append(os.path.join(SONIC_ROOT_PATH, hwsku, PLATFORM_JSON))
+
+    # check 'portconfig.ini' file presence
     port_config_candidates = []
-    port_config_candidates.append('/usr/share/sonic/hwsku/port_config.ini')
-    if hwsku:
-        if platform:
-            port_config_candidates.append(os.path.join('/usr/share/sonic/device', platform, hwsku, 'port_config.ini'))
-        port_config_candidates.append(os.path.join('/usr/share/sonic/platform', hwsku, 'port_config.ini'))
-        port_config_candidates.append(os.path.join('/usr/share/sonic', hwsku, 'port_config.ini'))
-    for candidate in port_config_candidates:
+    port_config_candidates.append(os.path.join(HWSKU_ROOT_PATH, PORT_CONFIG_INI))
+    if platform and hwsku:
+        port_config_candidates.append(os.path.join(PLATFORM_ROOT_PATH, platform, hwsku, PORT_CONFIG_INI))
+    elif platform and not hwsku:
+        port_config_candidates.append(os.path.join(PLATFORM_ROOT_PATH, platform, PORT_CONFIG_INI))
+    elif hwsku and not platform:
+        port_config_candidates.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, PORT_CONFIG_INI))
+        port_config_candidates.append(os.path.join(SONIC_ROOT_PATH, hwsku, PORT_CONFIG_INI))
+
+    for candidate in port_config_candidates_Json + port_config_candidates:
         if os.path.isfile(candidate):
             return candidate
     return None
-    
 
 def get_port_config(hwsku=None, platform=None, port_config_file=None):
+    config_db = db_connect_configdb()
+
+    # If available, Read from CONFIG DB first
+    if config_db is not None:
+
+        port_data = config_db.get_table("PORT")
+        if port_data is not None:
+            ports = ast.literal_eval(json.dumps(port_data))
+            port_alias_map = {}
+            for intf_name in ports.keys():
+                port_alias_map[ports[intf_name]["alias"]]= intf_name
+            return (ports, port_alias_map)
+
     if not port_config_file:
         port_config_file = get_port_config_file_name(hwsku, platform)
         if not port_config_file:
             return ({}, {})
-    return parse_port_config_file(port_config_file)
 
+    # Read from 'platform.json' file
+    if port_config_file.endswith('.json'):
+        return parse_platform_json_file(port_config_file)
+
+    # If 'platform.json' file is not available, read from 'port_config.ini'
+    else:
+        return parse_port_config_file(port_config_file)
 
 def parse_port_config_file(port_config_file):
     ports = {}
@@ -52,3 +121,98 @@ def parse_port_config_file(port_config_file):
     return (ports, port_alias_map)
 
 
+# Generate configs (i.e. alias, lanes, speed, index) for port
+def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  offset):
+    if k is not None:
+        num_lane_used, speed, alt_speed, _ , assigned_lane = k[0], k[1], k[2], k[3], k[4]
+
+        # In case of symmetric mode
+        if assigned_lane is None:
+            assigned_lane = len(lanes.split(","))
+
+        parent_intf_id = int(offset)+int(parent_intf_id)
+        alias_start = 0 + offset
+
+        step = int(assigned_lane)/int(num_lane_used)
+        for i in range(0,int(assigned_lane), step):
+            intf_name = PORT_STR + str(parent_intf_id)
+            ports[intf_name] = {}
+            ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
+            ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
+            if speed:
+                ports[intf_name]['speed'] = speed
+            else:
+                raise Exception('Regex return for speed is None...')
+            ports[intf_name]['index'] = index.split(",")[alias_start]
+            ports[intf_name]['admin_status'] = "up"
+
+            parent_intf_id += step
+            alias_start += step
+
+        offset = int(assigned_lane) + int(offset)
+        return offset
+    else:
+        raise Exception('Regex return for k is None...')
+
+def parse_platform_json_file(port_config_file, interface_name=None, target_brkout_mode=None):
+    ports = {}
+    port_alias_map = {}
+
+    # Read 'platform.json' file
+    try:
+        with open(port_config_file) as fp:
+            try:
+                data = json.load(fp)
+            except json.JSONDecodeError as e:
+                raise Exception("JSONDecodeError:", e)
+        global port_dict
+        port_dict = ast.literal_eval(json.dumps(data))
+    except:
+        print("error occurred while parsing json:", sys.exc_info()[1])
+
+    for intf in port_dict:
+        if str(interface_name) == intf:
+            brkout_mode = target_brkout_mode
+        else:
+            brkout_mode = port_dict[intf][BRKOUT_MODE]
+        index = port_dict[intf]['index']
+        alias_at_lanes = port_dict[intf]['alias_at_lanes']
+        lanes = port_dict[intf]['lanes']
+
+        # if User does not specify brkout_mode, take default_brkout_mode from platform.json
+        if brkout_mode is None:
+            brkout_mode = port_dict[intf][BRKOUT_MODE]
+
+        # Get match_list for Asymmetric breakout mode
+        if re.search("\+",brkout_mode) is not None:
+            brkout_parts = brkout_mode.split("+")
+            match_list = [re.match(BRKOUT_PATTERN, i).groups() for i in brkout_parts]
+
+        # Get match_list for Symmetric breakout mode
+        else:
+            match_list = [re.match(BRKOUT_PATTERN, brkout_mode).groups()]
+
+        """
+        Example of match_list for some breakout_mode using regex
+            Breakout Mode -------> Match_list
+            -----------------------------
+            2x25G(2)+1x50G(2) ---> [('2', '25G', None, '(2)', '2'), ('1', '50G', None, '(2)', '2')]
+            1x50G(2)+2x25G(2) ---> [('1', '50G', None, '(2)', '2'), ('2', '25G', None, '(2)', '2')]
+            1x100G[40G] ---------> [('1', '100G', '[40G]', None, None)]
+            2x50G ---------------> [('2', '50G', None, None, None)]
+        """
+        if match_list is not None:
+            offset = 0
+            parent_intf_id = int(re.search("Ethernet(\d+)", intf).group(1))
+            for k in match_list:
+                # k is a tuple in "match_list"
+                offset = gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
+            brkout_mode = None
+        else:
+            raise Exception("match_list should not be None.")
+    if not ports:
+        raise Exception("Ports dictionary is empty")
+
+    for i in ports.keys():
+        port_alias_map[ports[i]["alias"]]= i
+    return (ports, port_alias_map)
