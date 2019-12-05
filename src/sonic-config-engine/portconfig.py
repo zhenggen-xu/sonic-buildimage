@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 try:
     import os
@@ -122,67 +121,27 @@ def parse_port_config_file(port_config_file):
     return (ports, port_alias_map)
 
 # Generate configs (i.e. alias, lanes, speed, index) for port
-def gen_port_config(ports, intf, match_list, index, alias_at_lanes, lanes):
-    parent_interface_index = int(re.search("Ethernet(\d+)", intf).group(1))
-    alias_start = 0
-    """
-    Example of match_list for some breakout_mode using regex
-        Breakout Mode -------> Match_list
-        -----------------------------
-        2x25G(2)+1x50G(2) ---> [('2', '25G', None, '(2)', '2'), ('1', '50G', None, '(2)', '2')]
-        1x50G(2)+2x25G(2) ---> [('1', '50G', None, '(2)', '2'), ('2', '25G', None, '(2)', '2')]
-        1x100G[40G] ---------> [('1', '100G', '[40G]', None, None)]
-        2x50G ---------------> [('2', '50G', None, None, None)]
-    """
-    for k in match_list:
-        num_lane_used, speed, alt_speed, _ , assigned_lane = k[0], k[1], k[2], k[3], k[4]
+def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes,num_lane_used, speed, assigned_lane,  offset):
 
-        # Logic for ASYMMETRIC breakout mode
-        if assigned_lane:
-            if num_lane_used:
-                step = int(assigned_lane)/int(num_lane_used)
-                for i in range(0,int(assigned_lane), step):
-                    intf_name = PORT_STR + str(parent_interface_index)
+    parent_intf_id = int(offset)+int(parent_intf_id)
+    alias_start = 0 + offset
 
-                    ports[intf_name] = {}
-                    ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
-                    ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
-                    if speed:
-                        ports[intf_name]['speed'] = speed
-                    else:
-                        raise Exception('Regex return for speed is None...')
-                    ports[intf_name]['index'] = index.split(",")[alias_start]
-                    ports[intf_name]['admin_status'] = "up"
-
-                    parent_interface_index += step
-                    alias_start += step
-            else:
-                raise Exception('Regex return for num_lane_used is None...')
-
-        # Logic for SYMMETRIC breakout mode
+    step = int(assigned_lane)/int(num_lane_used)
+    for i in range(0,int(assigned_lane), step):
+        intf_name = PORT_STR + str(parent_intf_id)
+        ports[intf_name] = {}
+        ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
+        ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
+        if speed:
+            ports[intf_name]['speed'] = speed
         else:
-            lane_len = len(lanes.split(","))
-            if num_lane_used:
-                step = lane_len/int(num_lane_used)
-                lane_end = step
-                for i in range(0,lane_len, step):
-                    intf_name = PORT_STR + str(parent_interface_index)
+            raise Exception('Regex return for speed is None...')
+        ports[intf_name]['index'] = index.split(",")[alias_start]
+        ports[intf_name]['admin_status'] = "up"
 
-                    ports[intf_name] = {}
-                    ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
-                    ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:lane_end])
-                    if speed:
-                        ports[intf_name]['speed'] = speed
-                    else:
-                        raise Exception('Regex return for speed is None...')
-                    ports[intf_name]['index'] = index.split(",")[alias_start]
-                    ports[intf_name]['admin_status'] = "up"
+        parent_intf_id += step
+        alias_start += step
 
-                    parent_interface_index += step
-                    alias_start += step
-                    lane_end += step
-            else:
-                raise Exception('Regex return for num_lane_used is None...')
 
 def parse_platform_json_file(port_config_file, interface_name=None, target_brkout_mode=None):
     ports = {}
@@ -193,8 +152,8 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
         with open(port_config_file) as fp:
             try:
                 data = json.load(fp)
-            except json.JSONDecodeError:
-                print("Json file does not exist")
+            except json.JSONDecodeError as e:
+                raise Exception("JSONDecodeError:", e)
         global port_dict
         port_dict = ast.literal_eval(json.dumps(data))
     except:
@@ -222,8 +181,27 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
         else:
             match_list = [re.match(BRKOUT_PATTERN, brkout_mode).groups()]
 
+        """
+        Example of match_list for some breakout_mode using regex
+            Breakout Mode -------> Match_list
+            -----------------------------
+            2x25G(2)+1x50G(2) ---> [('2', '25G', None, '(2)', '2'), ('1', '50G', None, '(2)', '2')]
+            1x50G(2)+2x25G(2) ---> [('1', '50G', None, '(2)', '2'), ('2', '25G', None, '(2)', '2')]
+            1x100G[40G] ---------> [('1', '100G', '[40G]', None, None)]
+            2x50G ---------------> [('2', '50G', None, None, None)]
+        """
         if match_list is not None:
-            gen_port_config(ports, intf, match_list, index, alias_at_lanes, lanes)
+            offset = 0
+            parent_intf_id = int(re.search("Ethernet(\d+)", intf).group(1))
+            for k in match_list:
+                num_lane_used, speed, alt_speed, _ , assigned_lane = k[0], k[1], k[2], k[3], k[4]
+
+                # In case of symmetric mode
+                if assigned_lane is None:
+                    assigned_lane = len(lanes.split(","))
+
+                gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes,num_lane_used, speed, assigned_lane,  offset)
+                offset = int(assigned_lane) + int(offset)
             brkout_mode = None
         else:
             raise Exception("match_list should not be None.")
