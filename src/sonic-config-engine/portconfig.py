@@ -120,28 +120,39 @@ def parse_port_config_file(port_config_file):
             port_alias_map[data['alias']] = name
     return (ports, port_alias_map)
 
+
 # Generate configs (i.e. alias, lanes, speed, index) for port
-def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes,num_lane_used, speed, assigned_lane,  offset):
+def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  offset):
+    if k is not None:
+        num_lane_used, speed, alt_speed, _ , assigned_lane = k[0], k[1], k[2], k[3], k[4]
 
-    parent_intf_id = int(offset)+int(parent_intf_id)
-    alias_start = 0 + offset
+        # In case of symmetric mode
+        if assigned_lane is None:
+            assigned_lane = len(lanes.split(","))
 
-    step = int(assigned_lane)/int(num_lane_used)
-    for i in range(0,int(assigned_lane), step):
-        intf_name = PORT_STR + str(parent_intf_id)
-        ports[intf_name] = {}
-        ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
-        ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
-        if speed:
-            ports[intf_name]['speed'] = speed
-        else:
-            raise Exception('Regex return for speed is None...')
-        ports[intf_name]['index'] = index.split(",")[alias_start]
-        ports[intf_name]['admin_status'] = "up"
+        parent_intf_id = int(offset)+int(parent_intf_id)
+        alias_start = 0 + offset
 
-        parent_intf_id += step
-        alias_start += step
+        step = int(assigned_lane)/int(num_lane_used)
+        for i in range(0,int(assigned_lane), step):
+            intf_name = PORT_STR + str(parent_intf_id)
+            ports[intf_name] = {}
+            ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
+            ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
+            if speed:
+                ports[intf_name]['speed'] = speed
+            else:
+                raise Exception('Regex return for speed is None...')
+            ports[intf_name]['index'] = index.split(",")[alias_start]
+            ports[intf_name]['admin_status'] = "up"
 
+            parent_intf_id += step
+            alias_start += step
+
+        offset = int(assigned_lane) + int(offset)
+        return offset
+    else:
+        raise Exception('Regex return for k is None...')
 
 def parse_platform_json_file(port_config_file, interface_name=None, target_brkout_mode=None):
     ports = {}
@@ -194,14 +205,8 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
             offset = 0
             parent_intf_id = int(re.search("Ethernet(\d+)", intf).group(1))
             for k in match_list:
-                num_lane_used, speed, alt_speed, _ , assigned_lane = k[0], k[1], k[2], k[3], k[4]
-
-                # In case of symmetric mode
-                if assigned_lane is None:
-                    assigned_lane = len(lanes.split(","))
-
-                gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes,num_lane_used, speed, assigned_lane,  offset)
-                offset = int(assigned_lane) + int(offset)
+                # k is a tuple in "match_list"
+                offset = gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
             brkout_mode = None
         else:
             raise Exception("match_list should not be None.")
