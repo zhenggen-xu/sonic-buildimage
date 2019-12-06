@@ -1,5 +1,5 @@
 {
-  "yang_dir":"/sonic/src/sonic-yang-mgmt/yang-models/",
+  "yang_dir":"/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/sample-yang-models/",
   "data_file":"/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/sonic_config_data.json",
   "data_merge_file":"/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/sonic_config_data_merge.json",
   "modules":[
