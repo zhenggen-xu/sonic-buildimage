@@ -1,0 +1,144 @@
+module sonic-module {
+  yang-version 1.1;
+  namespace "urn:ietf:params:xml:ns:yang:sonic-module";
+
+  prefix tm;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization "organization";
+  description
+    "example yang module";
+  contact
+    "example@example.org";
+
+   container ports {
+        list port {
+            config true;
+            key "name";
+
+            leaf name {
+                type string;
+            }
+
+            leaf lanes {
+                //choice
+                type uint8;
+            }
+
+/* 
+            leaf fec {
+               type string;
+            }
+
+            leaf mtu {
+                type uint16;
+                description
+                   "Set the max transmission unit size in octets
+                    for the physical interface.  If this is not set, the mtu is
+                    set to the operational default -- e.g., 1514 bytes on an
+                    Ethernet interface.";
+           }
+           leaf admin_status {
+               type enumeration {
+                  enum UP {
+                     description
+                        "Ready to pass packets.";
+                  }
+                  enum DOWN {
+                      description
+                          "Not ready to pass packets and not in some test mode.";
+                  } 
+                  enum TESTING {
+                      //TODO: This is generally not supported as a configured
+                      //admin state, though it's in the standard interfaces MIB.
+                      //Consider removing it.
+                      description
+                         "In some test mode.";
+                   }
+               }
+           }
+*/
+           leaf alias {
+               type string;
+           }
+
+           leaf speed {
+              type string;
+              units "bits/second";
+/*
+              description
+                 "An estimate of the interface's current bandwidth in bits
+                  per second.  For interfaces that do not vary in
+                  bandwidth or for those where no accurate estimation can
+                  be made, this node should contain the nominal bandwidth.
+                  For interfaces that have no concept of bandwidth, this
+                  node is not present.";
+              reference
+                 "RFC 2863: The Interfaces Group MIB -
+                     ifSpeed, ifHighSpeed";
+*/
+           }
+
+        }
+     }
+
+     container vlans {
+        list vlan {
+            config true;
+
+            key "name";
+
+            leaf name {
+                type string;
+            }
+
+            leaf vlanid {
+                type string;
+            }
+
+           leaf admin_status {
+                type string;
+/*
+               type enumeration {
+                  enum UP {
+                     description
+                        "Ready to pass packets.";
+                  }
+                  enum DOWN {
+                      description
+                          "Not ready to pass packets and not in some test mode.";
+                  }
+                  enum TESTING {
+                      //TODO: This is generally not supported as a configured
+                      //admin state, though it's in the standard interfaces MIB.
+                      //Consider removing it.
+                      description
+                         "In some test mode.";
+                   }
+               }
+*/
+           }
+
+           leaf description {
+               type string;
+           }
+
+            leaf mtu {
+                type uint16;
+                description
+                   "Set the max transmission unit size in octets
+                    for the physical interface.  If this is not set, the mtu is
+                    set to the operational default -- e.g., 1514 bytes on an
+                    Ethernet interface.";
+           }
+           leaf-list members {
+                type leafref {
+                     path "../../../ports/port/name";
+                }
+            }
+        }
+    }
+}
