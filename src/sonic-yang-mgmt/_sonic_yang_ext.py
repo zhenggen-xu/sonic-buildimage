@@ -28,6 +28,7 @@ def loadYangModel(self):
         # keep only modules name in self.yangFiles
         self.yangFiles = [f.split('/')[-1] for f in self.yangFiles]
         self.yangFiles = [f.split('.')[0] for f in self.yangFiles]
+        print('Loaded below Yang Models')
         print(self.yangFiles)
 
         # load json for each yang model
@@ -196,17 +197,13 @@ def findYangTypedValue(self, key, value, leafDict):
 
     # convert config DB string to yang Type
     def yangConvert(val):
+        # Convert everything to string
+        val = str(val)
         # find type of this key from yang leaf
         type = leafDict[key]['type']['@name']
-        # TODO: vlanid will be fixed with leafref
-        if 'uint' in type or 'vlanid' == key :
-            # Few keys are already interger in configDB such as Priority and
-            # speed.
 
-            if isinstance(val, int):
-                vValue = val
-            else:
-                vValue = int(val, 10)
+        if 'uint' in type:
+            vValue = int(val, 10)
         # TODO: find type of leafref from schema node
         elif 'leafref' in type:
             vValue = val
@@ -556,7 +553,7 @@ def load_data(self, configdbJson):
       # self.jIn will be cropped
       self.cropConfigDB()
       # xlated result will be in self.xlateJson
-      self.xlateConfigDB("xlateYang.json")
+      self.xlateConfigDB()
       #print(self.xlateJson)
       self.root = self.ctx.parse_data_mem(dumps(self.xlateJson), \
                     ly.LYD_JSON, ly.LYD_OPT_CONFIG|ly.LYD_OPT_STRICT)
@@ -574,13 +571,11 @@ Get data from Data tree, data tree will be assigned in self.xlateJson
 def get_data(self):
 
     try:
-        self.xlateJson = self.print_data_mem('JSON')
+        self.xlateJson = loads(self.print_data_mem('JSON'))
         # reset reverse xlate
         self.revXlateJson = dict()
-        # print_data_mem returns in string format
-        self.xlateJson = loads(self.xlateJson)
         # result will be stored self.revXlateJson
-        self.revXlateConfigDB("revXlateYang.json")
+        self.revXlateConfigDB()
 
     except Exception as e:
         print("Get Data Tree Failed")
@@ -597,7 +592,7 @@ def delete_node(self, xpath):
     LYS_LEAF = 4
     node = self.find_data_node(xpath)
     if node is None:
-        return False
+        raise('Node {} not found'.format(xpath))
 
     snode = node.schema()
     # check for a leaf if it is a key. If yes delete the parent

@@ -18,8 +18,12 @@ class sonic_yang:
         self.confDbYangMap = dict()
         # JSON format of yang model [similar to pyang conversion]
         self.yJson = list()
+        # config DB json input, will be cropped as yang models
+        self.jIn = dict()
         # YANG JSON, this is traslated from config DB json
         self.xlateJson = dict()
+        # reverse translation from yang JSON, == config db json
+        self.revXlateJson = dict()
 
         try:
             self.ctx = ly.Context(yang_dir)
@@ -392,12 +396,9 @@ class sonic_yang:
             if (dnode is None):
                 #deleted node not found
                 return True
-            else:
-                #node still exists
-                return False
-        else:
-            print("delete_node(): Did not found the node, xpath: " + xpath)
-            return False
+
+        raise("_delete_node(): failed to delete, xpath: " + xpath)
+        return
 
     """
     find_node_value():  find the value of a node from the schema/data tree
