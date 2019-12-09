@@ -17,7 +17,7 @@ SONIC_ROOT_PATH = '/usr/share/sonic'
 HWSKU_ROOT_PATH = '/usr/share/sonic/hwsku'
 
 PLATFORM_JSON = 'platform.json'
-PORT_CONFIG_INI = 'portconfig.ini'
+PORT_CONFIG_INI = 'port_config.ini'
 
 PORT_STR = "Ethernet"
 BRKOUT_MODE = "default_brkout_mode"
@@ -33,8 +33,7 @@ def db_connect_configdb():
         return None
     try:
         config_db.connect()
-    except Exception as e:
-        print("Config DB is not available with error {}".format(str(e)))
+    except:
         config_db = None
     return config_db
 
@@ -204,10 +203,17 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
         if match_list is not None:
             offset = 0
             parent_intf_id = int(re.search("Ethernet(\d+)", intf).group(1))
+
+            if interface_name is not None and interface_name == intf:
+                ports = {}
+
             for k in match_list:
                 # k is a tuple in "match_list"
                 offset = gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
             brkout_mode = None
+
+            if interface_name is not None and interface_name == intf:
+                return ports
         else:
             raise Exception("match_list should not be None.")
     if not ports:
