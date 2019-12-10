@@ -47,16 +47,23 @@ load JSON schema format from yang models
 """
 def loadJsonYangModel(self):
 
-    for f in self.yangFiles:
-        m = self.ctx.get_module(f)
-        if m is not None:
-            xml = m.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
-            self.yJson.append(parse(xml))
+    try:
+        for f in self.yangFiles:
+            m = self.ctx.get_module(f)
+            if m is not None:
+                xml = m.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
+                self.yJson.append(parse(xml))
+    except Exception as e:
+        print('JSON conversion for yang models failed')
+        raise e
 
     return
 
 """
 Create a map from config DB tables to container in yang model
+This module name and topLevelContainer are fetched considering YANG models are
+written using below Guidelines:
+https://github.com/Azure/SONiC/blob/master/doc/mgmt/SONiC_YANG_Model_Guidelines.md.
 """
 def createDBTableToModuleMap(self):
 
@@ -91,9 +98,9 @@ def createDBTableToModuleMap(self):
     return
 
 """
-Get module, topLevelContainer and json container for a config DB table
+Get module, topLevelContainer(TLC) and json container for a config DB table
 """
-def get_module_top_container(self, table):
+def get_module_TLC_container(self, table):
     cmap = self.confDbYangMap
     m = cmap[table]['module']
     t = cmap[table]['topLevelContainer']
@@ -101,7 +108,9 @@ def get_module_top_container(self, table):
     return m, t, c
 
 """
-Crop config as per yang models
+Crop config as per yang models,
+This Function crops from config only those TABLEs, for which yang models is
+provided.
 """
 def cropConfigDB(self, croppedFile=None):
 
@@ -117,6 +126,14 @@ def cropConfigDB(self, croppedFile=None):
 
 """
 Extract keys from table entry in Config DB and return in a dict
+For Example: regex = <vlan_name>| and tableKey = "Vlan111|2a04:5555:45:6709::1/64"
+
+1.) first code will extract key list from regex, i.e. vlan_name and ip_prefix.
+2.) then will create another regex(regexV) to extract Values from tableKey by
+    replacing " --> extractor i.e. (.*?)" in regex.
+3.) Then will extract values from tableKey with regexV.
+4.) Resulting Dict will be:
+KeyDict = {"vlan_name": "Vlan111", "ip-prefix": "2a04:5555:45:6709::1/64"}
 """
 def extractKey(self, tableKey, regex):
 
@@ -551,7 +568,7 @@ def load_data(self, configdbJson):
       # reset xlate
       self.xlateJson = dict()
       # self.jIn will be cropped
-      self.cropConfigDB()
+      self.cropConfigDB("cropped.json")
       # xlated result will be in self.xlateJson
       self.xlateConfigDB()
       #print(self.xlateJson)
