@@ -21,8 +21,26 @@ PORT_CONFIG_INI = 'port_config.ini'
 
 PORT_STR = "Ethernet"
 BRKOUT_MODE = "default_brkout_mode"
+CUR_BRKOUT_MODE = "brkout_mode"
 
 BRKOUT_PATTERN = r'(\d{1,3})x(\d{1,3}G)(\[\d{1,3}G\])?(\((\d{1,3})\))?'
+
+#
+# Helper Functions
+#
+def readJson(port_config_file):
+    # Read 'platform.json' file
+    try:
+        with open(port_config_file) as fp:
+            try:
+                data = json.load(fp)
+            except json.JSONDecodeError:
+                print("Json file does not exist")
+        port_dict = ast.literal_eval(json.dumps(data))
+        return port_dict
+    except:
+        print("error occurred while parsing json:", sys.exc_info()[1])
+        return None
 
 def db_connect_configdb():
     """
@@ -157,17 +175,9 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
     ports = {}
     port_alias_map = {}
 
-    # Read 'platform.json' file
-    try:
-        with open(port_config_file) as fp:
-            try:
-                data = json.load(fp)
-            except json.JSONDecodeError as e:
-                raise Exception("JSONDecodeError:", e)
-        global port_dict
-        port_dict = ast.literal_eval(json.dumps(data))
-    except:
-        print("error occurred while parsing json:", sys.exc_info()[1])
+    port_dict = readJson(port_config_file)
+    if not port_dict:
+        raise Exception("port_dict is none")
 
     for intf in port_dict:
         if str(interface_name) == intf:
@@ -222,3 +232,25 @@ def parse_platform_json_file(port_config_file, interface_name=None, target_brkou
     for i in ports.keys():
         port_alias_map[ports[i]["alias"]]= i
     return (ports, port_alias_map)
+
+
+def get_breakout_mode(hwsku=None, platform=None, port_config_file=None):
+    if not port_config_file:
+        port_config_file = get_port_config_file_name(hwsku, platform)
+        if not port_config_file:
+            return None
+    if port_config_file.endswith('.json'):
+        return parse_breakout_mode(port_config_file)
+    else:
+        return None
+
+def parse_breakout_mode(port_config_file):
+    brkout_table = {}
+    port_dict = readJson(port_config_file)
+    if not port_dict:
+        raise Exception("Port_dict is empty")
+
+    for intf in port_dict:
+        brkout_table[intf] = {}
+        brkout_table[intf][CUR_BRKOUT_MODE] = port_dict[intf][BRKOUT_MODE]
+    return brkout_table
