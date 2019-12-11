@@ -53,13 +53,13 @@ class pkgBuild(build_py):
         else:
             print("YANG Tests passed\n")
 
-        # Continue usual build steps
         # run pytest for libyang python APIs
         self.pytest_args = []
         errno = pytest.main(self.pytest_args)
         if (errno):
             exit(errno)
 
+        # Continue usual build steps
         build_py.run(self)
 
 setup(
@@ -89,7 +89,7 @@ setup(
     include_package_data=True,
     keywords='sonic_yang_mgmt',
     name='sonic_yang_mgmt',
-    py_modules=['sonic_yang'],
+    py_modules=['sonic_yang', '_sonic_yang_ext'],
     packages=find_packages(),
     setup_requires=setup_requirements,
     version='1.0',
