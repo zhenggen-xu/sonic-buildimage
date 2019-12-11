@@ -7,12 +7,16 @@ import json
 import getopt
 import subprocess
 import glob
+from ijson import items as ijson_itmes
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 modules_path = os.path.dirname(test_path)
 sys.path.insert(0, modules_path)
 
 class Test_SonicYang(object):
+    # class vars
+    yang_test_file = "/sonic/src/sonic-yang-mgmt/tests/yang-model-tests/yangTest.json"
+
     @pytest.fixture(autouse=True, scope='class')
     def data(self):
         test_file = "/sonic/src/sonic-yang-mgmt/tests/libyang-python-tests/test_SonicYang.json"
@@ -33,6 +37,25 @@ class Test_SonicYang(object):
         with open(file) as data_file:
             data = json.load(data_file)
         return data
+
+    """
+        Get the JSON input based on func name
+        and return jsonInput
+    """
+    def readIjsonInput(self, test):
+        try:
+            # load test specific Dictionary, using Key = func
+            # this is to avoid loading very large JSON in memory
+            print(" Read JSON Section: " + test)
+            jInput = ""
+            with open(self.yang_test_file, 'rb') as f:
+                jInst = ijson_itmes(f, test)
+                for it in jInst:
+                    jInput = jInput + json.dumps(it)
+        except Exception as e:
+            print("Reading Ijson failed")
+            raise(e)
+        return jInput
 
     def setup_class(cls):
         pass
@@ -132,7 +155,7 @@ class Test_SonicYang(object):
         for node in data['delete_nodes']:
             expected = node['valid']
             xpath = str(node['xpath'])
-            yang_s.delete_node(xpath)
+            yang_s._delete_node(xpath)
 
     #test set node's value
     def test_set_datanode_value(self, data, yang_s):
@@ -190,6 +213,34 @@ class Test_SonicYang(object):
         yang_dir = str(data['yang_dir'])
         yang_s.merge_data(data_merge_file, yang_dir)
         #yang_s.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
+
+    def test_xlate_rev_xlate(self):
+        # This Test is with Sonic YANG model, so create class from start
+        # read the config
+        yang_dir = "/sonic/src/sonic-yang-mgmt/yang-models/"
+        jIn = self.readIjsonInput('SAMPLE_CONFIG_DB_JSON')
+        # load yang models
+        syc = sy.sonic_yang(yang_dir)
+
+        syc.loadYangModel()
+
+        syc.load_data(json.loads(jIn))
+
+        syc.get_data()
+
+        if syc.jIn == syc.revXlateJson:
+            print("Xlate and Rev Xlate Passed")
+        else:
+            # Right now, interface and vlan_interface will have default diff due to ip_prefix
+            from jsondiff import diff
+            configDiff = diff(syc.jIn, syc.revXlateJson, syntax='symmetric')
+            for key in configDiff.keys():
+                if 'INTERFACE' not in key:
+                    print("Xlate and Rev Xlate failed")
+                    sys.exit(1)
+            print("Xlate and Rev Xlate Passed")
+
+        return
 
     def teardown_class(cls):
         pass
