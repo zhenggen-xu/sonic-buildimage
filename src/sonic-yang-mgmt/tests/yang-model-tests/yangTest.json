@@ -3,7 +3,7 @@
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_INTERFACE": {
 				"VLAN_INTERFACE_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"ip-prefix": "2a04:5555:66:7777::1/64",
 					"scope": "global",
 					"family": "IPv4"
@@ -11,7 +11,7 @@
 			},
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"description": "server_vlan"
 				}]
 			}
@@ -22,7 +22,7 @@
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"description": "server_vlan",
 					"dhcp_servers": [
 						"10.186.72.566"
@@ -34,18 +34,18 @@
 		}
 	},
 
-	"VLAN_HAS_NON_EXIST_PORT": {
+	"VLAN_WITH_NON_EXIST_PORT": {
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"port": "Ethernet156",
 					"tagging_mode": "tagged"
 				}]
 			},
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"description": "server_vlan"
 				}]
 			}
@@ -77,18 +77,18 @@
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
-					"vlanid": 200,
+					"vlan_name": "Vlan200",
 					"port": "Ethernet0",
 					"tagging_mode": "tagged"
 				}]
 			},
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
-						"vlanid": 100,
+						"vlan_name": "Vlan100",
 						"description": "server_vlan"
 					},
 					{
-						"vlanid": 300,
+						"vlan_name": "Vlan300",
 						"description": "ipmi_vlan"
 					}
 				]
@@ -112,14 +112,14 @@
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_MEMBER": {
 				"VLAN_MEMBER_LIST": [{
-					"vlanid": 100,
+					"vlan_name": 100,
 					"port": "Ethernet0",
 					"tagging_mode": "non-tagged"
 				}]
 			},
 			"sonic-vlan:VLAN": {
 				"VLAN_LIST": [{
-					"vlanid": 100,
+					"vlan_name": "Vlan100",
 					"description": "server_vlan"
 				}]
 			}
