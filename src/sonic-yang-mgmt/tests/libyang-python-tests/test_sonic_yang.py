@@ -155,7 +155,7 @@ class Test_SonicYang(object):
         for node in data['delete_nodes']:
             expected = node['valid']
             xpath = str(node['xpath'])
-            yang_s.delete_node(xpath)
+            yang_s._delete_node(xpath)
 
     #test set node's value
     def test_set_datanode_value(self, data, yang_s):
@@ -214,30 +214,31 @@ class Test_SonicYang(object):
         yang_s.merge_data(data_merge_file, yang_dir)
         #yang_s.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
 
-    def test_xlate_rev_xlate(self, yang_s):
-
+    def test_xlate_rev_xlate(self):
+        # This Test is with Sonic YANG model, so create class from start
         # read the config
+        yang_dir = "/sonic/src/sonic-yang-mgmt/yang-models/"
         jIn = self.readIjsonInput('SAMPLE_CONFIG_DB_JSON')
         # load yang models
-        yang_s.loadYangModel()
+        syc = sy.sonic_yang(yang_dir)
 
-        yang_s.load_data(json.loads(jIn))
+        syc.loadYangModel()
 
-        yang_s.get_data()
+        syc.load_data(json.loads(jIn))
 
-        if yang_s.jIn == yang_s.revXlateJson:
+        syc.get_data()
+
+        if syc.jIn == syc.revXlateJson:
             print("Xlate and Rev Xlate Passed")
         else:
             # Right now, interface and vlan_interface will have default diff due to ip_prefix
             from jsondiff import diff
-            configDiff = diff(yang_s.jIn, yang_s.revXlateJson, syntax='symmetric')
+            configDiff = diff(syc.jIn, syc.revXlateJson, syntax='symmetric')
             for key in configDiff.keys():
                 if 'INTERFACE' not in key:
                     print("Xlate and Rev Xlate failed")
                     sys.exit(1)
             print("Xlate and Rev Xlate Passed")
-
-
 
         return
 

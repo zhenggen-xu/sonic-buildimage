@@ -396,9 +396,13 @@ class sonic_yang:
             if (dnode is None):
                 #deleted node not found
                 return True
+            else:
+                print('Could not delete Node')
+                return False
+        else:
+            print("failed to find node, xpath: " + xpath)
 
-        raise("_delete_node(): failed to delete, xpath: " + xpath)
-        return
+        return False
 
     """
     find_node_value():  find the value of a node from the schema/data tree
