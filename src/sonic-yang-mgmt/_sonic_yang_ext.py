@@ -506,7 +506,7 @@ def findXpathPortLeaf(self, portName):
     try:
         table = "PORT"
         xpath = self.findXpathPort(portName)
-        module, topc, container = self.get_module_top_container(table)
+        module, topc, container = self.get_module_TLC_container(table)
         list = self.findYangList(container, table+"_LIST")
         xpath = xpath + "/" + list['key']['@value'].split()[0]
     except Exception as e:
@@ -523,7 +523,7 @@ def findXpathPort(self, portName):
 
     try:
         table = "PORT"
-        module, topc, container = self.get_module_top_container(table)
+        module, topc, container = self.get_module_TLC_container(table)
         xpath = "/" + module + ":" + topc + "/" + table
 
         list = self.findYangList(container, table+"_LIST")

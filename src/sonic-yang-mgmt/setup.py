@@ -89,7 +89,7 @@ setup(
     include_package_data=True,
     keywords='sonic_yang_mgmt',
     name='sonic_yang_mgmt',
-    py_modules=['sonic_yang'],
+    py_modules=['sonic_yang', '_sonic_yang_ext'],
     packages=find_packages(),
     setup_requires=setup_requirements,
     version='1.0',
