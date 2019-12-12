@@ -88,7 +88,7 @@ def get_port_config(hwsku=None, platform=None, port_config_file=None):
     config_db = db_connect_configdb()
 
     # If available, Read from CONFIG DB first
-    if config_db is not None:
+    if config_db is not None and port_config_file is None:
 
         port_data = config_db.get_table("PORT")
         if port_data is not None:
@@ -157,7 +157,11 @@ def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  off
             ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
             ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
             if speed:
-                ports[intf_name]['speed'] = speed
+		if 'G'  not in speed.upper():
+		    raise Exception('{} speed is not Supported...'.format(speed))
+                num = re.split("G", speed.upper())
+                conv_speed = int(num[0])*1000
+                ports[intf_name]['speed'] = str(conv_speed)
             else:
                 raise Exception('Regex return for speed is None...')
             ports[intf_name]['index'] = index.split(",")[alias_start]
