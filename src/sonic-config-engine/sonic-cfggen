@@ -37,7 +37,7 @@ from functools import partial
 from minigraph import minigraph_encoder
 from minigraph import parse_xml
 from minigraph import parse_device_desc_xml
-from portconfig import get_port_config
+from portconfig import get_port_config, get_breakout_mode
 from sonic_device_util import get_machine_info
 from sonic_device_util import get_platform_info
 from sonic_device_util import get_system_mac
@@ -232,6 +232,10 @@ def main():
             print('Failed to get port config', file=sys.stderr)
             sys.exit(1)
         deep_update(data, {'PORT': ports})
+
+        brkout_table = get_breakout_mode(hwsku, platform, args.port_config)
+        if  brkout_table is not None:
+            deep_update(data, {'BREAKOUT_CFG': brkout_table})
 
     if args.minigraph != None:
         minigraph = args.minigraph
