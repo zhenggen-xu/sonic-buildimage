@@ -157,13 +157,18 @@ def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  off
             ports[intf_name]['alias'] = alias_at_lanes.split(",")[alias_start]
             ports[intf_name]['lanes'] = ','.join(lanes.split(",")[alias_start:alias_start+step])
             if speed:
-		if 'G'  not in speed.upper():
-		    raise Exception('{} speed is not Supported...'.format(speed))
-                num = re.split("G", speed.upper())
-                conv_speed = int(num[0])*1000
+                speed_pat = re.search("^((\d+)G|\d+)$", speed.upper())
+                if speed_pat is None:
+                    raise Exception('{} speed is not Supported...'.format(speed))
+                speed_G, speed_orig = speed_pat.group(2), speed_pat.group(1)
+                if speed_G:
+                    conv_speed = int(speed_G)*1000
+                else:
+                    conv_speed = int(speed_orig)
                 ports[intf_name]['speed'] = str(conv_speed)
             else:
                 raise Exception('Regex return for speed is None...')
+
             ports[intf_name]['index'] = index.split(",")[alias_start]
             ports[intf_name]['admin_status'] = "up"
 
