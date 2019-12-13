@@ -52,12 +52,23 @@ class TestBreakoutCli(object):
             brkout_mode = fvs[0][1]
             output_dict[key] = brkout_mode
         output = collections.OrderedDict(sorted(output_dict.items(), key=lambda t: t[0]))
-        expected_dict = {'Ethernet8': '1x100G[40G]', 'Ethernet0': '1x100G[40G]', 'Ethernet4': '1x100G[40G]', 'Ethernet108': '1x100G[40G]', 'Ethernet100': '1x100G[40G]', 'Ethernet104': '1x100G[40G]', 'Ethernet68': '1x100G[40G]', 'Ethernet96': '1x100G[40G]', 'Ethernet124': '1x100G[40G]', 'Ethernet92': '1x100G[40G]', 'Ethernet120': '1x100G[40G]', 'Ethernet52': '1x100G[40G]', 'Ethernet56': '1x100G[40G]', 'Ethernet76': '1x100G[40G]', 'Ethernet72': '1x100G[40G]', 'Ethernet32': '1x100G[40G]', 'Ethernet16': '1x100G[40G]', 'Ethernet36': '1x100G[40G]', 'Ethernet12': '1x100G[40G]', 'Ethernet28': '1x100G[40G]', 'Ethernet88': '1x100G[40G]', 'Ethernet116': '1x100G[40G]', 'Ethernet80': '1x100G[40G]', 'Ethernet112': '1x100G[40G]', 'Ethernet84': '1x100G[40G]', 'Ethernet48': '1x100G[40G]', 'Ethernet44': '1x100G[40G]', 'Ethernet40': '1x100G[40G]', 'Ethernet64': '1x100G[40G]', 'Ethernet60': '1x100G[40G]', 'Ethernet20': '1x100G[40G]', 'Ethernet24': '1x100G[40G]'}
+        expected_dict = \
+                {'Ethernet8': '1x100G[40G]', 'Ethernet0': '1x100G[40G]', 'Ethernet4': '1x100G[40G]', \
+                'Ethernet108': '1x100G[40G]', 'Ethernet100': '1x100G[40G]', 'Ethernet104': '1x100G[40G]', \
+                'Ethernet68': '1x100G[40G]', 'Ethernet96': '1x100G[40G]', 'Ethernet124': '1x100G[40G]', \
+                'Ethernet92': '1x100G[40G]', 'Ethernet120': '1x100G[40G]', 'Ethernet52': '1x100G[40G]', \
+                'Ethernet56': '1x100G[40G]', 'Ethernet76': '1x100G[40G]', 'Ethernet72': '1x100G[40G]', \
+                'Ethernet32': '1x100G[40G]', 'Ethernet16': '1x100G[40G]', 'Ethernet36': '1x100G[40G]', \
+                'Ethernet12': '1x100G[40G]', 'Ethernet28': '1x100G[40G]', 'Ethernet88': '1x100G[40G]', \
+                'Ethernet116': '1x100G[40G]', 'Ethernet80': '1x100G[40G]', 'Ethernet112': '1x100G[40G]', \
+                'Ethernet84': '1x100G[40G]', 'Ethernet48': '1x100G[40G]', 'Ethernet44': '1x100G[40G]', \
+                'Ethernet40': '1x100G[40G]', 'Ethernet64': '1x100G[40G]', 'Ethernet60': '1x100G[40G]', \
+                'Ethernet20': '1x100G[40G]', 'Ethernet24': '1x100G[40G]'}
         expected = collections.OrderedDict(sorted(expected_dict.items(), key=lambda t: t[0]))
         assert output == expected
 
     # Breakout Cli Test Mode
-    def test_mode_1X100G(self, dvs):
+    def test_breakout_modes(self, dvs):
         expected = self.read_Json(dvs)
         assert expected
 
@@ -82,6 +93,22 @@ class TestBreakoutCli(object):
         assert output_dict == expected_dict
         print "**** 4x25G[10G] --> 1x100G[40G] passed ****"
 
+        output_dict = self.breakout(dvs, 'Ethernet4', '2x50G')
+        print "**** 1X100G --> 2x50G mode change ****"
+
+        output_dict = self.breakout(dvs, 'Ethernet4', '4x25G[10G]')
+        expected_dict = expected["Ethernet4_4x25G"]
+        assert output_dict == expected_dict
+        print "**** 2X50G --> 4x25G[10G] passed ****"
+
+        output_dict = self.breakout(dvs, 'Ethernet4', '2x50G')
+        expected_dict = expected["Ethernet4_2x50G"]
+        assert output_dict == expected_dict
+        print "**** 4x25G[10G] --> 2X50G passed ****"
+
+        output_dict = self.breakout(dvs, 'Ethernet4', '1x100G[40G]')
+        print "**** 2x50G  -- > 1X100G mode change ****"
+
         output_dict = self.breakout(dvs, 'Ethernet0', '2x25G(2)+1x50G(2)')
         expected_dict = expected["Ethernet0_2x25G_1x50G"]
         assert output_dict == expected_dict
@@ -103,9 +130,7 @@ class TestBreakoutCli(object):
         print "**** 1x50G(2)+2x25G(2) --> 1x100G[40G] passed ****"
 
         output_dict = self.breakout(dvs, 'Ethernet8', '2x50G')
-        expected_dict = expected["Ethernet8_2x50G"]
-        assert output_dict == expected_dict
-        print "**** 1x100G[40G] --> 2x50G  passed ****"
+        print "**** 1x100G[40G] --> 2x50G  mode change ****"
 
         output_dict = self.breakout(dvs, 'Ethernet8', '1x50G(2)+2x25G(2)')
         expected_dict = expected["Ethernet8_1x50G_2x25G"]

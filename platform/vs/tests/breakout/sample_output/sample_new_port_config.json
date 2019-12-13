@@ -100,6 +100,52 @@
 	        "index": "0"
 		}
     },
+    "Ethernet4_4x25G": {
+	"Ethernet6": {
+		"alias": "Eth1/3",
+		"admin_status": "up",
+		"lanes": "31",
+		"speed": "25000",
+		"index": "1"
+	},
+	"Ethernet7": {
+		"alias": "Eth1/4",
+		"admin_status": "up",
+		"lanes": "32",
+		"speed": "25000",
+		"index": "1"
+	},
+	"Ethernet4": {
+		"alias": "Eth1/1",
+		"admin_status": "up",
+		"lanes": "29",
+		"speed": "25000",
+		"index": "1"
+	},
+	"Ethernet5": {
+		"alias": "Eth1/2",
+		"admin_status": "up",
+		"lanes": "30",
+		"speed": "25000",
+		"index": "1"
+	}
+    },
+    "Ethernet4_2x50G": {
+        "Ethernet6": {
+		"alias": "Eth1/3",
+		"admin_status": "up",
+		"lanes": "31,32",
+		"speed": "50000",
+		"index": "1"
+	},
+	"Ethernet4": {
+		"alias": "Eth1/1",
+		"admin_status": "up",
+		"lanes": "29,30",
+		"speed": "50000",
+		"index": "1"
+	}
+    },
     "Ethernet8_2x50G": {
 	    "Ethernet8": {
 	        "alias": "Eth2/1",
