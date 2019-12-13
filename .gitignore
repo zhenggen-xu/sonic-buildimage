@@ -62,8 +62,6 @@ src/lm-sensors/*
 !src/lm-sensors/Makefile
 src/mpdecimal/*
 !src/mpdecimal/Makefile
-src/python-click/*
-!src/python-click/Makefile
 src/python3/*
 !src/python3/Makefile
 src/radvd/*
