@@ -606,22 +606,31 @@ Delete a node from data tree, if this is LEAF and KEY Delete the Parent
 def delete_node(self, xpath):
 
     # These MACROS used only here, can we get it from Libyang Header ?
-    LYS_LEAF = 4
-    node = self.find_data_node(xpath)
-    if node is None:
-        raise('Node {} not found'.format(xpath))
+    try:
+        LYS_LEAF = 4
+        node = self.find_data_node(xpath)
+        if node is None:
+            raise('Node {} not found'.format(xpath))
 
-    snode = node.schema()
-    # check for a leaf if it is a key. If yes delete the parent
-    if (snode.nodetype() == LYS_LEAF):
-        leaf = ly.Schema_Node_Leaf(snode)
-        if leaf.is_key():
-            # try to delete parent
-            nodeP = self.find_parent_node(xpath)
-            xpathP = nodeP.path()
-            return self._delete_node(xpath=xpathP, node=nodeP)
-    else:
-        return self._delete_node(xpath=xpath, node=node)
+        snode = node.schema()
+        # check for a leaf if it is a key. If yes delete the parent
+        if (snode.nodetype() == LYS_LEAF):
+            leaf = ly.Schema_Node_Leaf(snode)
+            if leaf.is_key():
+                # try to delete parent
+                nodeP = self.find_parent_node(xpath)
+                xpathP = nodeP.path()
+                if self._delete_node(xpath=xpathP, node=nodeP) == False:
+                    raise('_delete_node failed')
+                else:
+                    return True
+
+        # delete non key element
+        if self._delete_node(xpath=xpath, node=node) == False:
+            raise('_delete_node failed')
+    except Exception as e:
+        print(e)
+        raise('Failed to delete node {}'.format(xpath))
 
     return True
 

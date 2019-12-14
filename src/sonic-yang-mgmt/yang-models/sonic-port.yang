@@ -48,6 +48,7 @@ module sonic-port{
 				}
 
 				leaf lanes {
+					mandatory true;
 					type string {
 						length 1..128;
 					}
@@ -60,6 +61,7 @@ module sonic-port{
 				}
 
 				leaf speed {
+					mandatory true;
 					type uint32 {
 						range 1..100000;
 					}
@@ -71,8 +73,13 @@ module sonic-port{
 					}
 				}
 
+				leaf index {
+					type uint8 {
+						range 1..128;
+					}
+				}
+
 				leaf admin_status {
-					mandatory true;
 					type head:admin_status;
 				}
 
