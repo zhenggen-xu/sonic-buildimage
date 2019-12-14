@@ -497,17 +497,21 @@ class sonic_yang:
             self.fail(e)
             return ref_list
 
-        value = str(self.find_node_value(data_xpath))
+        try:
+            value = str(self.find_node_value(data_xpath))
 
-        schema_node = ly.Schema_Node_Leaf(data_node.schema())
-        backlinks = schema_node.backlinks()
-        if backlinks.number() > 0:
-            for link in backlinks.schema():
-                 node_set = node.find_path(link.path())
-                 for data_set in node_set.data():
-                      schema = data_set.schema()
-                      casted = data_set.subtype()
-                      if value == casted.value_str():
-                          ref_list.append(data_set.path())
+            schema_node = ly.Schema_Node_Leaf(data_node.schema())
+            backlinks = schema_node.backlinks()
+            if backlinks.number() > 0:
+                for link in backlinks.schema():
+                     node_set = node.find_path(link.path())
+                     for data_set in node_set.data():
+                          schema = data_set.schema()
+                          casted = data_set.subtype()
+                          if value == casted.value_str():
+                              ref_list.append(data_set.path())
+        except Exception as e:
+            print('Failed to find node or dependencies for {}'.format(data_xpath))
+            self.fail(e)
 
         return ref_list
