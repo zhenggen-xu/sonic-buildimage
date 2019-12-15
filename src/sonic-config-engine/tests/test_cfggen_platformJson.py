@@ -52,12 +52,12 @@ class TestCfgGenPlatformJson(TestCase):
 
         argument = '-m "' + self.sample_graph_simple + '" -p "' + self.platform_json + '" -v "PORT[\'Ethernet8\']"'
         output = self.run_script(argument)
-        expected = "{'index': '3', 'lanes': '8', 'description': 'Eth3/1', 'admin_status': 'up', 'mtu': '9100', 'alias': 'Eth3/1', 'pfc_asym': 'off', 'speed': '25G'}"
+        expected = "{'index': '3', 'lanes': '8', 'description': 'Eth3/1', 'admin_status': 'up', 'mtu': '9100', 'alias': 'Eth3/1', 'pfc_asym': 'off', 'speed': '25000'}"
         self.assertEqual(output.strip(), expected)
 
         argument = '-m "' + self.sample_graph_simple + '" -p "' + self.platform_json + '" -v "PORT[\'Ethernet112\']"'
         output = self.run_script(argument)
-        expected = "{'index': '29', 'lanes': '112', 'description': 'Eth29/1', 'admin_status': 'up', 'mtu': '9100', 'alias': 'Eth29/1', 'pfc_asym': 'off', 'speed': '25G'}"
+        expected = "{'index': '29', 'lanes': '112', 'description': 'Eth29/1', 'admin_status': 'up', 'mtu': '9100', 'alias': 'Eth29/1', 'pfc_asym': 'off', 'speed': '25000'}"
         self.assertEqual(output.strip(), expected)
 
     # Check all Interface with it's proper configuration as per platform.json

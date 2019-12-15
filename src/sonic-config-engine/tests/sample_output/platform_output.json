@@ -7,7 +7,7 @@
     "mtu": "9100",
     "alias": "Eth3/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet9": {
     "index": "3",
@@ -17,7 +17,7 @@
     "mtu": "9100",
     "alias": " Eth3/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet36": {
     "index": "10",
@@ -27,7 +27,7 @@
     "mtu": "9100",
     "alias": "Eth10/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet98": {
     "index": "25",
@@ -37,7 +37,7 @@
     "mtu": "9100",
     "alias": " Eth25/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet0": {
     "index": "1",
@@ -47,7 +47,7 @@
     "mtu": "9100",
     "alias": "Eth1/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet6": {
     "index": "2",
@@ -57,7 +57,7 @@
     "mtu": "9100",
     "alias": " Eth2/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet4": {
     "index": "2",
@@ -67,7 +67,7 @@
     "mtu": "9100",
     "alias": "Eth2/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet109": {
     "index": "28",
@@ -77,7 +77,7 @@
     "mtu": "9100",
     "alias": " Eth28/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet108": {
     "index": "28",
@@ -87,7 +87,7 @@
     "mtu": "9100",
     "alias": "Eth28/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet18": {
     "index": "5",
@@ -97,7 +97,7 @@
     "mtu": "9100",
     "alias": " Eth5/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet100": {
     "index": "26",
@@ -107,7 +107,7 @@
     "mtu": "9100",
     "alias": "Eth26/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet34": {
     "index": "9",
@@ -117,7 +117,7 @@
     "mtu": "9100",
     "alias": " Eth9/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet104": {
     "index": "27",
@@ -127,7 +127,7 @@
     "mtu": "9100",
     "alias": "Eth27/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet106": {
     "index": "27",
@@ -137,7 +137,7 @@
     "mtu": "9100",
     "alias": " Eth27/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet94": {
     "index": "24",
@@ -147,7 +147,7 @@
     "mtu": "9100",
     "alias": " Eth24/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet126": {
     "index": "32",
@@ -157,7 +157,7 @@
     "mtu": "9100",
     "alias": " Eth32/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet96": {
     "index": "25",
@@ -167,7 +167,7 @@
     "mtu": "9100",
     "alias": "Eth25/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet124": {
     "index": "32",
@@ -177,7 +177,7 @@
     "mtu": "9100",
     "alias": "Eth32/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet90": {
     "index": "23",
@@ -187,7 +187,7 @@
     "mtu": "9100",
     "alias": " Eth23/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet91": {
     "index": "23",
@@ -197,7 +197,7 @@
     "mtu": "9100",
     "alias": " Eth23/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet92": {
     "index": "24",
@@ -207,7 +207,7 @@
     "mtu": "9100",
     "alias": "Eth24/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet93": {
     "index": "24",
@@ -217,7 +217,7 @@
     "mtu": "9100",
     "alias": " Eth24/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet50": {
     "index": "13",
@@ -227,7 +227,7 @@
     "mtu": "9100",
     "alias": " Eth13/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet51": {
     "index": "13",
@@ -237,7 +237,7 @@
     "mtu": "9100",
     "alias": " Eth13/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet52": {
     "index": "14",
@@ -247,7 +247,7 @@
     "mtu": "9100",
     "alias": "Eth14/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet53": {
     "index": "14",
@@ -257,7 +257,7 @@
     "mtu": "9100",
     "alias": " Eth14/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet54": {
     "index": "14",
@@ -267,7 +267,7 @@
     "mtu": "9100",
     "alias": " Eth14/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet99": {
     "index": "25",
@@ -277,7 +277,7 @@
     "mtu": "9100",
     "alias": " Eth25/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet56": {
     "index": "15",
@@ -287,7 +287,7 @@
     "mtu": "9100",
     "alias": "Eth15/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet113": {
     "index": "29",
@@ -297,7 +297,7 @@
     "mtu": "9100",
     "alias": " Eth29/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet76": {
     "index": "20",
@@ -307,7 +307,7 @@
     "mtu": "9100",
     "alias": "Eth20/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet74": {
     "index": "19",
@@ -317,7 +317,7 @@
     "mtu": "9100",
     "alias": " Eth19/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet39": {
     "index": "10",
@@ -327,7 +327,7 @@
     "mtu": "9100",
     "alias": " Eth10/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet72": {
     "index": "19",
@@ -337,7 +337,7 @@
     "mtu": "9100",
     "alias": "Eth19/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet73": {
     "index": "19",
@@ -347,7 +347,7 @@
     "mtu": "9100",
     "alias": " Eth19/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet70": {
     "index": "18",
@@ -357,7 +357,7 @@
     "mtu": "9100",
     "alias": " Eth18/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet71": {
     "index": "18",
@@ -367,7 +367,7 @@
     "mtu": "9100",
     "alias": " Eth18/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet32": {
     "index": "9",
@@ -377,7 +377,7 @@
     "mtu": "9100",
     "alias": "Eth9/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet33": {
     "index": "9",
@@ -387,7 +387,7 @@
     "mtu": "9100",
     "alias": " Eth9/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet16": {
     "index": "5",
@@ -397,7 +397,7 @@
     "mtu": "9100",
     "alias": "Eth5/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet111": {
     "index": "28",
@@ -407,7 +407,7 @@
     "mtu": "9100",
     "alias": " Eth28/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet10": {
     "index": "3",
@@ -417,7 +417,7 @@
     "mtu": "9100",
     "alias": " Eth3/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet11": {
     "index": "3",
@@ -427,7 +427,7 @@
     "mtu": "9100",
     "alias": " Eth3/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet12": {
     "index": "4",
@@ -437,7 +437,7 @@
     "mtu": "9100",
     "alias": "Eth4/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet13": {
     "index": "4",
@@ -447,7 +447,7 @@
     "mtu": "9100",
     "alias": " Eth4/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet58": {
     "index": "15",
@@ -457,7 +457,7 @@
     "mtu": "9100",
     "alias": " Eth15/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet19": {
     "index": "5",
@@ -467,7 +467,7 @@
     "mtu": "9100",
     "alias": " Eth5/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet59": {
     "index": "15",
@@ -477,7 +477,7 @@
     "mtu": "9100",
     "alias": " Eth15/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet38": {
     "index": "10",
@@ -487,7 +487,7 @@
     "mtu": "9100",
     "alias": " Eth10/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet78": {
     "index": "20",
@@ -497,7 +497,7 @@
     "mtu": "9100",
     "alias": " Eth20/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet68": {
     "index": "18",
@@ -507,7 +507,7 @@
     "mtu": "9100",
     "alias": "Eth18/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet14": {
     "index": "4",
@@ -517,7 +517,7 @@
     "mtu": "9100",
     "alias": " Eth4/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet89": {
     "index": "23",
@@ -527,7 +527,7 @@
     "mtu": "9100",
     "alias": " Eth23/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet88": {
     "index": "23",
@@ -537,7 +537,7 @@
     "mtu": "9100",
     "alias": "Eth23/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet118": {
     "index": "30",
@@ -547,7 +547,7 @@
     "mtu": "9100",
     "alias": " Eth30/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet119": {
     "index": "30",
@@ -557,7 +557,7 @@
     "mtu": "9100",
     "alias": " Eth30/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet116": {
     "index": "30",
@@ -567,7 +567,7 @@
     "mtu": "9100",
     "alias": "Eth30/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet114": {
     "index": "29",
@@ -577,7 +577,7 @@
     "mtu": "9100",
     "alias": " Eth29/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet80": {
     "index": "21",
@@ -587,7 +587,7 @@
     "mtu": "9100",
     "alias": "Eth21/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet112": {
     "index": "29",
@@ -597,7 +597,7 @@
     "mtu": "9100",
     "alias": "Eth29/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet86": {
     "index": "22",
@@ -607,7 +607,7 @@
     "mtu": "9100",
     "alias": " Eth22/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet110": {
     "index": "28",
@@ -617,7 +617,7 @@
     "mtu": "9100",
     "alias": " Eth28/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet84": {
     "index": "22",
@@ -627,7 +627,7 @@
     "mtu": "9100",
     "alias": "Eth22/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet31": {
     "index": "8",
@@ -637,7 +637,7 @@
     "mtu": "9100",
     "alias": " Eth8/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet49": {
     "index": "13",
@@ -647,7 +647,7 @@
     "mtu": "9100",
     "alias": " Eth13/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet48": {
     "index": "13",
@@ -657,7 +657,7 @@
     "mtu": "9100",
     "alias": "Eth13/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet46": {
     "index": "12",
@@ -667,7 +667,7 @@
     "mtu": "9100",
     "alias": " Eth12/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet30": {
     "index": "8",
@@ -677,7 +677,7 @@
     "mtu": "9100",
     "alias": " Eth8/3",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet29": {
     "index": "8",
@@ -687,7 +687,7 @@
     "mtu": "9100",
     "alias": " Eth8/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet40": {
     "index": "11",
@@ -697,7 +697,7 @@
     "mtu": "9100",
     "alias": "Eth11/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet120": {
     "index": "31",
@@ -707,7 +707,7 @@
     "mtu": "9100",
     "alias": "Eth31/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet28": {
     "index": "8",
@@ -717,7 +717,7 @@
     "mtu": "9100",
     "alias": "Eth8/1",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet66": {
     "index": "17",
@@ -727,7 +727,7 @@
     "mtu": "9100",
     "alias": " Eth17/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet60": {
     "index": "16",
@@ -737,7 +737,7 @@
     "mtu": "9100",
     "alias": "Eth16/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet64": {
     "index": "17",
@@ -747,7 +747,7 @@
     "mtu": "9100",
     "alias": "Eth17/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet44": {
     "index": "12",
@@ -757,7 +757,7 @@
     "mtu": "9100",
     "alias": "Eth12/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet20": {
     "index": "6",
@@ -767,7 +767,7 @@
     "mtu": "9100",
     "alias": "Eth6/1",
     "pfc_asym": "off",
-    "speed": "100G"
+    "speed": "100000"
   },
   "Ethernet79": {
     "index": "20",
@@ -777,7 +777,7 @@
     "mtu": "9100",
     "alias": " Eth20/4",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet69": {
     "index": "18",
@@ -787,7 +787,7 @@
     "mtu": "9100",
     "alias": " Eth18/2",
     "pfc_asym": "off",
-    "speed": "25G"
+    "speed": "25000"
   },
   "Ethernet24": {
     "index": "7",
@@ -797,7 +797,7 @@
     "mtu": "9100",
     "alias": "Eth7/1",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   },
   "Ethernet26": {
     "index": "7",
@@ -807,6 +807,6 @@
     "mtu": "9100",
     "alias": " Eth7/3",
     "pfc_asym": "off",
-    "speed": "50G"
+    "speed": "50000"
   }
 }
