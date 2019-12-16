@@ -42,6 +42,7 @@
   "Ethernet0": {
     "index": "1",
     "lanes": "0,1,2,3",
+    "fec": "rs",
     "description": "Eth1/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -102,6 +103,7 @@
   "Ethernet100": {
     "index": "26",
     "lanes": "100,101,102,103",
+    "fec": "rs",
     "description": "Eth26/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -582,6 +584,7 @@
   "Ethernet80": {
     "index": "21",
     "lanes": "80,81,82,83",
+    "fec": "rs",
     "description": "Eth21/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -692,6 +695,7 @@
   "Ethernet40": {
     "index": "11",
     "lanes": "40,41,42,43",
+    "fec": "rs",
     "description": "Eth11/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -702,6 +706,7 @@
   "Ethernet120": {
     "index": "31",
     "lanes": "120,121,122,123",
+    "fec": "rs",
     "description": "Eth31/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -732,6 +737,7 @@
   "Ethernet60": {
     "index": "16",
     "lanes": "60,61,62,63",
+    "fec": "rs",
     "description": "Eth16/1",
     "admin_status": "up",
     "mtu": "9100",
@@ -762,6 +768,7 @@
   "Ethernet20": {
     "index": "6",
     "lanes": "20,21,22,23",
+    "fec": "rs",
     "description": "Eth6/1",
     "admin_status": "up",
     "mtu": "9100",
