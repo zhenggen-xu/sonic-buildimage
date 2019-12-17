@@ -1045,6 +1045,7 @@
 				"lanes": "113,114",
 				"description": "50G|dccsw01.nw|Eth18",
 				"fec": "fc",
+				"speed": "11100",
 				"admin_status": "up"
 			}
 		},
