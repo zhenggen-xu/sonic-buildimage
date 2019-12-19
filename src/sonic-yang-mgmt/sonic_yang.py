@@ -1,16 +1,24 @@
 import yang as ly
 from json import dump
 from glob import glob
+from datetime import datetime
 
 """
 Yang schema and data tree python APIs based on libyang python
 """
 class sonic_yang:
-    def __init__(self, yang_dir):
+
+    def __init__(self, yang_dir, debug=True):
         self.yang_dir = yang_dir
         self.ctx = None
         self.module = None
         self.root = None
+
+        self.DEBUG_FILE = None
+        if debug:
+            self.DEBUG_FILE = '_debug_sonic_yang'
+            with open(self.DEBUG_FILE, 'w') as df:
+                df.write('--- Start sonic_yang logging ---\n\n')
 
         # yang model files, need this map it to module
         self.yangFiles = list()
@@ -38,6 +46,23 @@ class sonic_yang:
     import all function from extension file
     """
     from _sonic_yang_ext import *
+
+    """
+    Loggign in debug file, this function prints header then object
+    """
+    def logInFile(self, header="", obj=None, json=False):
+
+        if self.DEBUG_FILE:
+            with open(self.DEBUG_FILE, 'a') as df:
+                time = datetime.now()
+                df.write('\n\n{}: {}\n'.format(time, header))
+                if json:
+                    dump(obj, df, indent=4)
+                elif obj:
+                        df.write('{}: {}'.format(time, obj))
+                df.write('\n----')
+
+        return
 
     """
     load_schema_module(): load a Yang model file

@@ -265,18 +265,22 @@ def xlateList(self, model, yang, config, table):
 
     leafDict = self.createLeafDict(model)
 
+    self.logInFile("Xlate {}".format(table))
     # Find and extracts key from each dict in config
     for pkey in config:
         try:
+            vKey = None
+            self.logInFile("xlate Extract pkey {} {}".format(pkey,keyExt[table]))
             keyDict = self.extractKey(pkey, keyExt[table])
             # fill rest of the values in keyDict
             for vKey in config[pkey]:
+                self.logInFile("xlate vkey {}".format(vKey), keyExt[table])
                 keyDict[vKey] = self.findYangTypedValue(vKey, \
                                     config[pkey][vKey], leafDict)
             yang.append(keyDict)
         except Exception as e:
             print("Exception while Config DB --> YANG: pkey:{}, "\
-            "vKey:{}, value: {}".format(pkey, vKey, config[pkey][vKey]))
+            "vKey:{}, value: {}".format(pkey, vKey, config[pkey].get(vKey)))
             raise e
 
     return
