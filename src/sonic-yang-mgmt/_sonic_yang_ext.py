@@ -112,11 +112,14 @@ Crop config as per yang models,
 This Function crops from config only those TABLEs, for which yang models is
 provided.
 """
-def cropConfigDB(self, croppedFile=None):
+def cropConfigDB(self, croppedFile=None, allowExtraTables=True):
 
     for table in self.jIn.keys():
         if table not in self.confDbYangMap:
-            del self.jIn[table]
+            if allowExtraTables:
+                del self.jIn[table]
+            else:
+                raise(Exception("No Yang Model Exist for {}".format(table)))
 
     if croppedFile:
         with open(croppedFile, 'w') as f:
@@ -565,14 +568,14 @@ load_data: load Config DB, crop, xlate and create data tree from it.
 input:    data
 returns:  True - success   False - failed
 """
-def load_data(self, configdbJson):
+def load_data(self, configdbJson, allowExtraTables=True):
 
    try:
       self.jIn = configdbJson
       # reset xlate
       self.xlateJson = dict()
       # self.jIn will be cropped
-      self.cropConfigDB("cropped.json")
+      self.cropConfigDB("cropped.json", allowExtraTables)
       # xlated result will be in self.xlateJson
       self.xlateConfigDB()
       #print(self.xlateJson)
