@@ -18,6 +18,7 @@ HWSKU_ROOT_PATH = '/usr/share/sonic/hwsku'
 
 PLATFORM_JSON = 'platform.json'
 PORT_CONFIG_INI = 'port_config.ini'
+HWSKU_JSON = 'hwsku.json'
 
 PORT_STR = "Ethernet"
 BRKOUT_MODE = "default_brkout_mode"
@@ -25,19 +26,20 @@ CUR_BRKOUT_MODE = "brkout_mode"
 
 BRKOUT_PATTERN = r'(\d{1,3})x(\d{1,3}G)(\[\d{1,3}G\])?(\((\d{1,3})\))?'
 
+
 #
 # Helper Functions
 #
-def readJson(port_config_file):
-    # Read 'platform.json' file
+def readJson(filename):
+    # Read 'platform.json' or 'hwsku.json' file
     try:
-        with open(port_config_file) as fp:
+        with open(filename) as fp:
             try:
                 data = json.load(fp)
             except json.JSONDecodeError:
                 print("Json file does not exist")
-        port_dict = ast.literal_eval(json.dumps(data))
-        return port_dict
+        data_dict = ast.literal_eval(json.dumps(data))
+        return data_dict
     except:
         print("error occurred while parsing json:", sys.exc_info()[1])
         return None
@@ -59,14 +61,9 @@ def get_port_config_file_name(hwsku=None, platform=None):
 
     # check 'platform.json' file presence
     port_config_candidates_Json = []
-    port_config_candidates_Json.append(os.path.join(HWSKU_ROOT_PATH, PLATFORM_JSON))
-    if platform and hwsku:
-        port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, hwsku, PLATFORM_JSON))
-    elif platform and not hwsku:
+    port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, PLATFORM_JSON))
+    if platform:
         port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, PLATFORM_JSON))
-    elif hwsku and not platform:
-        port_config_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, PLATFORM_JSON))
-        port_config_candidates_Json.append(os.path.join(SONIC_ROOT_PATH, hwsku, PLATFORM_JSON))
 
     # check 'portconfig.ini' file presence
     port_config_candidates = []
@@ -80,6 +77,19 @@ def get_port_config_file_name(hwsku=None, platform=None):
         port_config_candidates.append(os.path.join(SONIC_ROOT_PATH, hwsku, PORT_CONFIG_INI))
 
     for candidate in port_config_candidates_Json + port_config_candidates:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+def get_hwsku_file_name(hwsku=None, platform=None):
+    hwsku_candidates_Json = []
+    hwsku_candidates_Json.append(os.path.join(HWSKU_ROOT_PATH, HWSKU_JSON))
+    if hwsku:
+        if platform:
+            hwsku_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, hwsku, HWSKU_JSON))
+        hwsku_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, HWSKU_JSON)
+        hwsku_candidates_Json.append(os.path.join(SONIC_ROOT_PATH, hwsku, HWSKU_JSON)
+    for candidate in hwsku_candidates_Json:
         if os.path.isfile(candidate):
             return candidate
     return None
@@ -105,11 +115,16 @@ def get_port_config(hwsku=None, platform=None, port_config_file=None):
 
     # Read from 'platform.json' file
     if port_config_file.endswith('.json'):
-        return parse_platform_json_file(port_config_file)
+        hwsku_json_file = get_hwsku_file_name(hwsku, platform)
+        if not hwsku_json_file:
+            raise Exception("'hwsku_json' file does not exist!!! This file is necessary to proceed forward.")
+
+        return parse_platform_json_file(hwsku_json_file, port_config_file)
 
     # If 'platform.json' file is not available, read from 'port_config.ini'
     else:
         return parse_port_config_file(port_config_file)
+
 
 def parse_port_config_file(port_config_file):
     ports = {}
@@ -180,26 +195,33 @@ def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  off
     else:
         raise Exception('Regex return for k is None...')
 
-def parse_platform_json_file(port_config_file, interface_name=None, target_brkout_mode=None):
+
+def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=None, target_brkout_mode=None):
     ports = {}
     port_alias_map = {}
 
     port_dict = readJson(port_config_file)
+    hwsku_dict = readJson(hwsku_json_file)
     if not port_dict:
         raise Exception("port_dict is none")
+    if not hwsku_dict:
+        raise Exception("hwsku_dict is none")
 
     for intf in port_dict:
         if str(interface_name) == intf:
             brkout_mode = target_brkout_mode
         else:
-            brkout_mode = port_dict[intf][BRKOUT_MODE]
+            if intf not in hwsku_dict:
+                raise Exception("{} is not available in hwsku_dict".format(intf))
+            brkout_mode = hwsku_dict[intf][BRKOUT_MODE]
+
         index = port_dict[intf]['index']
         alias_at_lanes = port_dict[intf]['alias_at_lanes']
         lanes = port_dict[intf]['lanes']
 
-        # if User does not specify brkout_mode, take default_brkout_mode from platform.json
+        # if User does not specify brkout_mode, take default_brkout_mode from hwsku.json
         if brkout_mode is None:
-            brkout_mode = port_dict[intf][BRKOUT_MODE]
+            brkout_mode = hwsku_dict[intf][BRKOUT_MODE]
 
         # Get match_list for Asymmetric breakout mode
         if re.search("\+",brkout_mode) is not None:
@@ -249,17 +271,21 @@ def get_breakout_mode(hwsku=None, platform=None, port_config_file=None):
         if not port_config_file:
             return None
     if port_config_file.endswith('.json'):
-        return parse_breakout_mode(port_config_file)
+        hwsku_json_file = get_hwsku_file_name(hwsku, platform)
+        if not hwsku_json_file:
+            raise Exception("'hwsku_json' file does not exist!!! This file is necessary to proceed forward.")
+
+        return parse_breakout_mode(hwsku_json_file)
     else:
         return None
 
-def parse_breakout_mode(port_config_file):
+def parse_breakout_mode(hwsku_json_file):
     brkout_table = {}
-    port_dict = readJson(port_config_file)
-    if not port_dict:
-        raise Exception("Port_dict is empty")
+    hwsku_dict = readJson(hwsku_json_file)
+    if not hwsku_dict:
+        raise Exception("hwsku_dict is empty")
 
-    for intf in port_dict:
+    for intf in hwsku_dict:
         brkout_table[intf] = {}
-        brkout_table[intf][CUR_BRKOUT_MODE] = port_dict[intf][BRKOUT_MODE]
+        brkout_table[intf][CUR_BRKOUT_MODE] = hwsku_dict[intf][BRKOUT_MODE]
     return brkout_table
