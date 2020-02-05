@@ -32,15 +32,45 @@ module sonic-interface {
 	}
 
 	container sonic-interface {
+
 		container INTERFACE {
 
 			description "INTERFACE part of config_db.json";
 
 			list INTERFACE_LIST {
 
-				key "interface ip-prefix";
+				description "INTERFACE part of config_db.json with vrf";
 
-				leaf interface {
+				key "port_name";
+
+				leaf port_name {
+					type leafref {
+						path /port:sonic-port/port:PORT/port:PORT_LIST/port:port_name;
+					}
+				}
+
+				leaf vrf_name {
+					type string {
+						pattern "Vrf[a-zA-Z0-9_-]+";
+						length 3..255;
+					}
+				}
+			}
+			/* end of INTERFACE_LIST */
+
+			list INTERFACE_IPPREFIX_LIST {
+
+				description "INTERFACE part of config_db.json with ip-prefix";
+
+				key "port_name ip-prefix";
+
+				leaf port_name {
+					/* This node must be present in INTERFACE_LIST */
+					must "(current() = ../../INTERFACE_LIST[port_name=current()]/port_name)"
+					{
+						error-message "Must condition not satisfied, Try adding PORT: {}, Example: 'Ethernet0': {}";
+					}
+
 					type leafref {
 						path /port:sonic-port/port:PORT/port:PORT_LIST/port:port_name;
 					}
@@ -71,7 +101,7 @@ module sonic-interface {
 					type head:ip-family;
 				}
 			}
-			/* end of INTERFACE_LIST */
+			/* end of INTERFACE_IPPREFIX_LIST */
 
 		}
 		/* end of INTERFACE container */

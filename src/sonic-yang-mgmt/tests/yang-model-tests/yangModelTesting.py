@@ -41,7 +41,8 @@ class YangModelTesting:
             'InvalidValue': ['Invalid value'],
             'LeafRef': ['Leafref', 'non-existing'],
             'When': ['When condition', 'not satisfied'],
-            'Pattern': ['pattern', 'does not satisfy']
+            'Pattern': ['pattern', 'does not satisfy'],
+            'None': ['']
         }
 
         self.ExceptionTests = {
@@ -100,6 +101,14 @@ class YangModelTesting:
             'ACL_RULE_WRONG_INNER_ETHER_TYPE': {
                 'desc': 'Configure INNER_ETHER_TYPE as 0x080C in ACL_RULE.',
                 'eStr': self.defaultYANGFailure['Pattern']
+            },
+            'INTERFACE_IPPREFIX_PORT_MUST_CONDITION_FALSE': {
+                'desc': 'Interface Ip-prefix port-name must condition failure.',
+                'eStr': self.defaultYANGFailure['Must']
+            },
+            'INTERFACE_IPPREFIX_PORT_MUST_CONDITION_TRUE': {
+                'desc': 'Interface Ip-prefix port-name must condition pass.',
+                'eStr': self.defaultYANGFailure['None']
             }
         }
 

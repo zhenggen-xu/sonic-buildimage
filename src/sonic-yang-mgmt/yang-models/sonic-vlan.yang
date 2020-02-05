@@ -32,15 +32,43 @@ module sonic-vlan {
 	}
 
 	container sonic-vlan {
+
 		container VLAN_INTERFACE {
 
 			description "VLAN_INTERFACE part of config_db.json";
 
 			list VLAN_INTERFACE_LIST {
 
+				description "VLAN INTERFACE part of config_db.json with vrf";
+
+				key "vlan_name";
+
+				leaf vlan_name {
+					type leafref {
+						path /vlan:sonic-vlan/vlan:VLAN/vlan:VLAN_LIST/vlan:vlan_name;
+					}
+				}
+
+				leaf vrf_name {
+					type string {
+						pattern "Vrf[a-zA-Z0-9_-]+";
+						length 3..255;
+					}
+				}
+			}
+			/* end of VLAN_INTERFACE_LIST */
+
+			list VLAN_INTERFACE_IPPREFIX_LIST {
+
 				key "vlan_name ip-prefix";
 
 				leaf vlan_name {
+					/* This node must be present in VLAN_INTERFACE_LIST */
+					must "(current() = ../../VLAN_INTERFACE_LIST[vlan_name=current()]/vlan_name)"
+					{
+						error-message "Must condition not satisfied, Try adding Vlan<vlanid>: {}, Example: 'Vlan100': {}";
+					}
+
 					type leafref {
 						path "/vlan:sonic-vlan/vlan:VLAN/vlan:VLAN_LIST/vlan:vlan_name";
 					}
