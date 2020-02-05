@@ -44,9 +44,11 @@ module sonic-loopback-interface {
             /* end of LOOPBACK_INTERFACE_LIST */
 
             list LOOPBACK_INTERFACE_IPPREFIX_LIST {
+
                 key "loopback_interface_name ip-prefix";
 
                 leaf loopback_interface_name{
+
                     /* This node must be present in LOOPBACK_INTERFACE_LIST */
                     must "(current() = ../../LOOPBACK_INTERFACE_LIST[loopback_interface_name=current()]/loopback_interface_name)"
                     {

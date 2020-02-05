@@ -129,31 +129,28 @@ def cropConfigDB(self, croppedFile=None, allowExtraTables=True):
 
 """
 Extract keys from table entry in Config DB and return in a dict
-For Example: regex = <vlan_name>| and tableKey = "Vlan111|2a04:5555:45:6709::1/64"
 
-1.) first code will extract key list from regex, i.e. vlan_name and ip_prefix.
-2.) then will create another regex(regexV) to extract Values from tableKey by
-    replacing " --> extractor i.e. (.*?)" in regex.
-3.) Then will extract values from tableKey with regexV.
-4.) Resulting Dict will be:
+Input:
+tableKey: Config DB Primary Key, Example tableKey = "Vlan111|2a04:5555:45:6709::1/64"
+keys: key string from YANG list, i.e. 'vlan_name ip-prefix'.
+regex: A regex to extract keys from tableKeys, good to have it as accurate as possible.
+
+Return:
 KeyDict = {"vlan_name": "Vlan111", "ip-prefix": "2a04:5555:45:6709::1/64"}
 """
-def extractKey(self, tableKey, regex):
+def extractKey(self, tableKey, keys, regex):
 
-    # get the keys from regex of key extractor
-    keyList = re.findall(r'<(.*?)>', regex)
-    # create a regex to get values from tableKey
-    # and change separator to text in regexV
-    regexV = re.sub('<.*?>', '(.*?)', regex)
-    regexV = re.sub('\|', '\\|', regexV)
+    keyList = keys.split()
+    #self.logInFile("extractKey {}".format(keyList))
     # get the value groups
-    value = re.match(r'^'+regexV+'$', tableKey)
+    value = re.match(regex, tableKey)
     # create the keyDict
     i = 1
     keyDict = dict()
     for k in keyList:
         if value.group(i):
             keyDict[k] = value.group(i)
+            # self.logInFile("extractKey {} {}".format(k, keyDict[k]))
         else:
             raise Exception("Value not found for {} in {}".format(k, tableKey))
         i = i + 1
@@ -254,13 +251,17 @@ def xlateList(self, model, yang, config, table):
     # TODO: define a keyExt dict as of now, but we should be able to extract
     # this from YANG model extentions.
     keyExt = {
-        "VLAN_INTERFACE": "<vlan_name>|<ip-prefix>",
-        "ACL_RULE": "<ACL_TABLE_NAME>|<RULE_NAME>",
-        "VLAN": "<vlan_name>",
-        "VLAN_MEMBER": "<vlan_name>|<port>",
-        "ACL_TABLE": "<ACL_TABLE_NAME>",
-        "INTERFACE": "<interface>|<ip-prefix>",
-        "PORT": "<port_name>"
+        "VLAN_INTERFACE_LIST": "^(Vlan[a-zA-Z0-9_-]+)$",
+        "VLAN_LIST": "^(Vlan[a-zA-Z0-9_-]+)$",
+        "VLAN_INTERFACE_IPPREFIX_LIST": "^(Vlan[a-zA-Z0-9_-]+)\|([a-fA-F0-9:./]+$)",
+        "VLAN_MEMBER_LIST": "^(Vlan[a-zA-Z0-9-_]+)\|(Ethernet[0-9]+)$",
+        "ACL_RULE_LIST": "^([a-zA-Z0-9_-]+)\|([a-zA-Z0-9_-]+)$",
+        "ACL_TABLE_LIST": "^([a-zA-Z0-9-_]+)$",
+        "INTERFACE_LIST": "^(Ethernet[0-9]+)$",
+        "INTERFACE_IPPREFIX_LIST": "^(Ethernet[0-9]+)\|([a-fA-F0-9:./]+)$",
+        "PORT_LIST": "^(Ethernet[0-9]+)$",
+        "LOOPBACK_INTERFACE_LIST": "^([a-zA-Z0-9-_]+)$",
+        "LOOPBACK_INTERFACE_IPPREFIX_LIST": "^([a-zA-Z0-9-_]+)\|([a-fA-F0-9:./]+)$",
     }
     #create a dict to map each key under primary key with a dict yang model.
     #This is done to improve performance of mapping from values of TABLEs in
@@ -268,23 +269,31 @@ def xlateList(self, model, yang, config, table):
 
     leafDict = self.createLeafDict(model)
 
-    self.logInFile("Xlate {}".format(table))
-    # Find and extracts key from each dict in config
-    for pkey in config:
+    keyRegEx = keyExt[model['@name']]
+    # get keys from YANG model list itself
+    listKeys = model['key']['@value']
+
+    for pkey in config.keys():
         try:
             vKey = None
-            self.logInFile("xlate Extract pkey {} {}".format(pkey,keyExt[table]))
-            keyDict = self.extractKey(pkey, keyExt[table])
+            self.logInFile("xlateList Extract pkey {}".format(pkey))
+            # Find and extracts key from each dict in config
+            keyDict = self.extractKey(pkey, listKeys, keyRegEx)
             # fill rest of the values in keyDict
             for vKey in config[pkey]:
-                self.logInFile("xlate vkey {}".format(vKey), keyExt[table])
+                self.logInFile("xlateList vkey {}".format(vKey))
                 keyDict[vKey] = self.findYangTypedValue(vKey, \
                                     config[pkey][vKey], leafDict)
             yang.append(keyDict)
+            # delete pkey from config, done to match one key with one list
+            del config[pkey]
+
         except Exception as e:
-            print("Exception while Config DB --> YANG: pkey:{}, "\
+            self.logInFile("xlateList Exception {}".format(e))
+            self.logInFile("Exception while Config DB --> YANG: pkey:{}, "\
             "vKey:{}, value: {}".format(pkey, vKey, config[pkey].get(vKey)))
-            raise e
+            # with multilist, we continue matching other keys.
+            continue
 
     return
 
@@ -295,19 +304,36 @@ using yang model. Output will be stored in self.xlateJson
 """
 def xlateContainer(self, model, yang, config, table):
 
-    # if container contains single list with containerName_LIST and
-    # config is not empty then xLate the list
+    # To Handle mupltiple, Make a copy of config, because we delete keys
+    # from config after each match. This is done to match one pkey with one list.
+    configC = config.copy()
+
     clist = model.get('list')
+    # If single list exists in container,
     if clist and isinstance(clist, dict) and \
-       clist['@name'] == model['@name']+"_LIST" and bool(config):
+       clist['@name'] == model['@name']+"_LIST" and bool(configC):
             #print(clist['@name'])
             yang[clist['@name']] = list()
-            self.xlateList(model['list'], yang[clist['@name']], \
-                           config, table)
+            self.logInFile("xlateContainer listD {}".format(clist['@name']))
+            self.xlateList(clist, yang[clist['@name']], \
+                           configC, table)
+            # clean empty lists
+            if len(yang[clist['@name']]) == 0:
+                del yang[clist['@name']]
             #print(yang[clist['@name']])
 
-    # TODO: Handle mupltiple list and rest of the field in Container.
-    # We do not have any such instance in Yang model today.
+    # If multi-list exists in container,
+    elif clist and isinstance(clist, list) and bool(configC):
+        for modelList in clist:
+            yang[modelList['@name']] = list()
+            self.logInFile("xlateContainer listL {}".format(modelList['@name']))
+            self.xlateList(modelList, yang[modelList['@name']], configC, table)
+            # clean empty lists
+            if len(yang[modelList['@name']]) == 0:
+                del yang[modelList['@name']]
+
+    if len(configC):
+        raise(Exception("All Keys are not parsed in {}".format(table)))
 
     return
 
@@ -325,6 +351,7 @@ def xlateConfigDBtoYang(self, jIn, yangJ):
         # Add new top level container for first table in this container
         yangJ[key] = dict() if yangJ.get(key) is None else yangJ[key]
         yangJ[key][subkey] = dict()
+        self.logInFile("xlateConfigDBtoYang {}:{}".format(key, subkey))
         self.xlateContainer(cmap['container'], yangJ[key][subkey], \
                             jIn[table], table)
 
@@ -389,7 +416,6 @@ def revFindYangTypedValue(self, key, value, leafDict):
 
     return vValue
 
-
 """
 Rev xlate from <TABLE>_LIST to table in config DB
 """
@@ -398,26 +424,31 @@ def revXlateList(self, model, yang, config, table):
     # TODO: define a keyExt dict as of now, but we should be able to
     # extract this from YANG model extentions.
     keyExt = {
-        "VLAN_INTERFACE": "<vlan_name>|<ip-prefix>",
-        "ACL_RULE": "<ACL_TABLE_NAME>|<RULE_NAME>",
-        "VLAN": "<vlan_name>",
-        "VLAN_MEMBER": "<vlan_name>|<port>",
-        "ACL_TABLE": "<ACL_TABLE_NAME>",
-        "INTERFACE": "<interface>|<ip-prefix>",
-        "PORT": "<port_name>"
+        "VLAN_INTERFACE_IPPREFIX_LIST": "<vlan_name>|<ip-prefix>",
+        "VLAN_INTERFACE_LIST": "<vlan_name>",
+        "VLAN_MEMBER_LIST": "<vlan_name>|<port>",
+        "VLAN_LIST": "<vlan_name>",
+        "ACL_RULE_LIST": "<ACL_TABLE_NAME>|<RULE_NAME>",
+        "ACL_TABLE_LIST": "<ACL_TABLE_NAME>",
+        "INTERFACE_LIST": "<port_name>",
+        "INTERFACE_IPPREFIX_LIST": "<port_name>|<ip-prefix>",
+        "LOOPBACK_INTERFACE_LIST": "<loopback_interface_name>",
+        "LOOPBACK_INTERFACE_IPPREFIX_LIST": "<loopback_interface_name>|<ip-prefix>",
+        "PORT_LIST": "<port_name>"
+
     }
 
+    keyRegEx = keyExt[model['@name']]
     # create a dict to map each key under primary key with a dict yang model.
     # This is done to improve performance of mapping from values of TABLEs in
     # config DB to leaf in YANG LIST.
     leafDict = self.createLeafDict(model)
 
-    # list with name <TABLE>_LIST should be removed,
-    # right now we have only this instance of LIST
-    if model['@name'] == table + "_LIST":
+    # list with name <NAME>_LIST should be removed,
+    if "_LIST" in model['@name']:
         for entry in yang:
             # create key of config DB table
-            pkey, pkeydict = self.createKey(entry, keyExt[table])
+            pkey, pkeydict = self.createKey(entry, keyRegEx)
             config[pkey]= dict()
             # fill rest of the entries
             for key in entry:
@@ -438,9 +469,8 @@ def revXlateContainer(self, model, yang, config, table):
         modelList = model['list']
         # Pass matching list from Yang Json
         self.revXlateList(modelList, yang[modelList['@name']], config, table)
-    else:
-        # TODO: Container[TABLE] contains multiple lists. [Test Pending]
-        # No instance now.
+
+    elif isinstance(model['list'], list):
         for modelList in model['list']:
             self.revXlateList(modelList, yang[modelList['@name']], config, table)
 
@@ -575,10 +605,11 @@ def load_data(self, configdbJson, allowExtraTables=True):
       # reset xlate
       self.xlateJson = dict()
       # self.jIn will be cropped
-      self.cropConfigDB("cropped.json", allowExtraTables)
+      self.cropConfigDB(allowExtraTables=allowExtraTables)
       # xlated result will be in self.xlateJson
       self.xlateConfigDB()
       #print(self.xlateJson)
+      self.logInFile("Try to load Data in the tree")
       self.root = self.ctx.parse_data_mem(dumps(self.xlateJson), \
                     ly.LYD_JSON, ly.LYD_OPT_CONFIG|ly.LYD_OPT_STRICT)
 

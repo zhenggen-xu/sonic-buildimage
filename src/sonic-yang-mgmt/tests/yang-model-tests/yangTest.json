@@ -627,6 +627,8 @@
 
 	"SAMPLE_CONFIG_DB_JSON": {
 		"VLAN_INTERFACE": {
+			"Vlan111": {},
+			"Vlan777": {},
 			"Vlan111|2a04:5555:45:6709::1/64": {
 				"scope": "global",
 				"family": "IPv6"
@@ -1178,6 +1180,10 @@
 			}
 		},
 		"INTERFACE": {
+			"Ethernet112": {},
+			"Ethernet14": {},
+			"Ethernet16": {},
+			"Ethernet18": {},
 			"Ethernet112|2a04:5555:40:a709::2/126": {
 				"scope": "global",
 				"family": "IPv6"
@@ -1259,6 +1265,7 @@
 			}
 		},
 		"LOOPBACK_INTERFACE": {
+			"Loopback0": {},
 			"Loopback0|2a04:5555:40:4::4e9/128": {
 				"scope": "global",
 				"family": "IPv6"
