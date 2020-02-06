@@ -109,6 +109,14 @@ class YangModelTesting:
             'INTERFACE_IPPREFIX_PORT_MUST_CONDITION_TRUE': {
                 'desc': 'Interface Ip-prefix port-name must condition pass.',
                 'eStr': self.defaultYANGFailure['None']
+            },
+            'VLAN_INTERFACE_IPPREFIX_MUST_CONDITION_FALSE': {
+                'desc': 'Vlan Interface Ip-prefix must condition failure.',
+                'eStr': self.defaultYANGFailure['Must']
+            },
+            'LOOPBACK_IPPREFIX_PORT_MUST_CONDITION_FALSE': {
+                'desc': 'Loopback Ip-prefix port-name must condition failure.',
+                'eStr': self.defaultYANGFailure['Must']
             }
         }
 
