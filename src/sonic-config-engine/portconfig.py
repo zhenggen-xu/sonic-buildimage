@@ -202,17 +202,18 @@ def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=N
 
     port_dict = readJson(port_config_file)
     hwsku_dict = readJson(hwsku_json_file)
+
     if not port_dict:
         raise Exception("port_dict is none")
     if not hwsku_dict:
         raise Exception("hwsku_dict is none")
 
     for intf in port_dict:
+        if intf not in hwsku_dict:
+            raise Exception("{} is not available in hwsku_dict".format(intf))
         if str(interface_name) == intf:
             brkout_mode = target_brkout_mode
         else:
-            if intf not in hwsku_dict:
-                raise Exception("{} is not available in hwsku_dict".format(intf))
             brkout_mode = hwsku_dict[intf][BRKOUT_MODE]
 
         index = port_dict[intf]['index']
