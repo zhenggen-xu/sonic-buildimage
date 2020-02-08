@@ -296,14 +296,20 @@ def main():
         print(template.render(sort_data(data)))
 
     if args.var != None:
-        template = jinja2.Template('{{' + args.var + '}}')
-        print(template.render(data))
+        try:
+            template = jinja2.Template('{{' + args.var + '}}')
+            print(template.render(data))
+        except:
+            print("")
 
     if args.var_json != None and args.var_json in data:
-        if args.key != None:
-            print(json.dumps(FormatConverter.to_serialized(data[args.var_json], args.key), indent=4, cls=minigraph_encoder))
-        else:
-            print(json.dumps(FormatConverter.to_serialized(data[args.var_json]), indent=4, cls=minigraph_encoder))
+        try:
+            if args.key != None:
+                print(json.dumps(FormatConverter.to_serialized(data[args.var_json], args.key), indent=4, cls=minigraph_encoder))
+            else:
+                print(json.dumps(FormatConverter.to_serialized(data[args.var_json]), indent=4, cls=minigraph_encoder))
+        except:
+            print("")
 
     if args.write_to_db:
         configdb = ConfigDBConnector(**db_kwargs)
