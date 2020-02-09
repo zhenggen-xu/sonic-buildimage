@@ -3,6 +3,9 @@
 		"sonic-vlan:sonic-vlan": {
 			"sonic-vlan:VLAN_INTERFACE": {
 				"VLAN_INTERFACE_LIST": [{
+					"vlan_name": "Vlan100"
+				}],
+				"VLAN_INTERFACE_IPPREFIX_LIST": [{
 					"vlan_name": "Vlan100",
 					"ip-prefix": "2a04:5555:66:7777::1/64",
 					"scope": "global",
@@ -142,7 +145,10 @@
 		"sonic-interface:sonic-interface": {
 			"sonic-interface:INTERFACE": {
 				"INTERFACE_LIST": [{
-					"interface": "Ethernet8",
+					"port_name": "Ethernet8"
+				}],
+				"INTERFACE_IPPREFIX_LIST": [{
+					"port_name": "Ethernet8",
 					"ip-prefix": "",
 					"scope": "global",
 					"family": "IPv4"
@@ -423,6 +429,102 @@
 						"admin_status": "up"
 					}
 				]
+			}
+		}
+	},
+
+	"VLAN_INTERFACE_IPPREFIX_MUST_CONDITION_FALSE": {
+		"sonic-vlan:sonic-vlan": {
+			"sonic-vlan:VLAN_INTERFACE": {
+				"VLAN_INTERFACE_IPPREFIX_LIST": [{
+					"vlan_name": "Vlan100",
+					"ip-prefix": "2a04:5555:66:7777::1/64",
+					"scope": "global",
+					"family": "IPv6"
+				}]
+			},
+			"sonic-vlan:VLAN": {
+				"VLAN_LIST": [{
+					"vlan_name": "Vlan100",
+					"description": "server_vlan"
+				}]
+			}
+		}
+	},
+
+	"LOOPBACK_IPPREFIX_PORT_MUST_CONDITION_FALSE": {
+		"sonic-loopback-interface:sonic-loopback-interface": {
+			"sonic-loopback-interface:LOOPBACK_INTERFACE": {
+				"LOOPBACK_INTERFACE_IPPREFIX_LIST": [{
+					"loopback_interface_name": "lo1",
+					"ip-prefix": "2a04:5555:66:7777::1/64",
+					"scope": "global",
+					"family": "IPv6"
+				}]
+			}
+		}
+	},
+
+	"INTERFACE_IPPREFIX_PORT_MUST_CONDITION_FALSE": {
+		"sonic-interface:sonic-interface": {
+			"sonic-interface:INTERFACE": {
+				"INTERFACE_LIST": [{
+					"port_name": "Ethernet9"
+				}],
+				"INTERFACE_IPPREFIX_LIST": [{
+					"port_name": "Ethernet8",
+					"ip-prefix": "10.0.0.1/30",
+					"scope": "global",
+					"family": "IPv4"
+				}]
+			}
+		},
+		"sonic-port:sonic-port": {
+			"sonic-port:PORT": {
+				"PORT_LIST": [{
+					"port_name": "Ethernet8",
+					"alias": "eth8",
+					"description": "Ethernet8",
+					"speed": 25000,
+					"mtu": 9000,
+					"admin_status": "up"
+				},
+				{
+					"port_name": "Ethernet9",
+					"alias": "eth9",
+					"description": "Ethernet9",
+					"speed": 25000,
+					"mtu": 9000,
+					"admin_status": "up"
+				}]
+			}
+		}
+	},
+
+	"INTERFACE_IPPREFIX_PORT_MUST_CONDITION_TRUE": {
+		"sonic-interface:sonic-interface": {
+			"sonic-interface:INTERFACE": {
+				"INTERFACE_LIST": [{
+					"port_name": "Ethernet8"
+				}],
+				"INTERFACE_IPPREFIX_LIST": [{
+					"port_name": "Ethernet8",
+					"ip-prefix": "10.0.0.1/30",
+					"scope": "global",
+					"family": "IPv4"
+				}]
+			}
+		},
+		"sonic-port:sonic-port": {
+			"sonic-port:PORT": {
+				"PORT_LIST": [{
+					"port_name": "Ethernet8",
+					"alias": "eth8",
+					"description": "Ethernet8",
+					"speed": 25000,
+					"mtu": 9000,
+					"admin_status": "up"
+				}]
 			}
 		}
 	},
