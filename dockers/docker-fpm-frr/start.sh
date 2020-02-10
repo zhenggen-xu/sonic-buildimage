@@ -38,12 +38,12 @@ if [[ ! -z $(sonic-cfggen -d -v 'WARM_RESTART') ]] && [[ $(sonic-cfggen -d -v 'W
     supervisorctl start bgp_eoiu_marker
 fi
 
-# Start Quagga processes
+# Start Quagga/FRR processes
 supervisorctl start zebra
 supervisorctl start staticd
 supervisorctl start bgpd
 
-if [ "$CONFIG_TYPE" == "unified" ]; then
+if [ "$CONFIG_TYPE" == "unified" ] || [ "$CONFIG_TYPE" == "split" ]; then
     supervisorctl start vtysh_b
 fi
 
