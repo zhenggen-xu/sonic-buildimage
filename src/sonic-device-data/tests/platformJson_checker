@@ -12,10 +12,11 @@ except NameError:
   basestring = str
 
 # Global variable
-PORT_ATTRIBUTES = ["index", "lanes", "alias_at_lanes", "breakout_modes", "default_brkout_mode"]
+PORT_ATTRIBUTES = ["index", "lanes", "alias_at_lanes", "breakout_modes"]
 ATTR_LEN = len(PORT_ATTRIBUTES)
 PORT_REG = "Ethernet(\d+)"
 PLATFORM_JSON = '*platform.json'
+INTF_KEY = "interfaces"
 
 def usage():
     print "Usage: " + sys.argv[0] + " <platform_json_file>"
@@ -41,7 +42,7 @@ def check_file(platform_json_file):
         platform_file_data = platform_cap_file.read()
         port_dict = json.loads(platform_file_data)
 
-        for each_port in port_dict:
+        for each_port in port_dict[INTF_KEY]:
 
             # Validate port at top level
             port_id = re.search(PORT_REG, each_port)
@@ -49,8 +50,8 @@ def check_file(platform_json_file):
                 print "Error: Unknown Interface " + str(each_port) + " at top level"
                 return False
 
-            total_attr = len(port_dict[each_port].keys())
-            port_attr = port_dict[each_port]
+            total_attr = len(port_dict[INTF_KEY][each_port].keys())
+            port_attr = port_dict[INTF_KEY][each_port]
 
             if total_attr != ATTR_LEN:
                 missing_attr = ', '.join(set(PORT_ATTRIBUTES).difference(list(port_attr)))
