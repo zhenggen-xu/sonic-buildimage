@@ -117,5 +117,25 @@
     {"xpath":"/sonic-interface:sonic-interface/INTERFACE/INTERFACE_LIST[interface='Ethernet8'][ip-prefix='2000:f500:40:a749::/126']/interface", "data_type":"LY_TYPE_STRING"},
     {"xpath":"/sonic-vlan:sonic-vlan/VLAN_MEMBER/VLAN_MEMBER_LIST[vlanid='111'][port='Ethernet0']/port", "data_type":"LY_TYPE_STRING"},
     {"xpath":"/sonic-vlan:sonic-vlan/VLAN_MEMBER/VLAN_MEMBER_LIST[vlanid='111'][port='Ethernet0']/vlanid", "data_type":"LY_TYPE_UINT16"}
+   ],
+  "leafref_type_schema":[
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_INTERFACE/sonic-vlan:VLAN_INTERFACE_LIST/sonic-vlan:vlanid",
+     "data_type":"LY_TYPE_UINT16"},
+    {"xpath":"/sonic-interface:sonic-interface/sonic-interface:INTERFACE/sonic-interface:INTERFACE_LIST/sonic-interface:interface",
+     "data_type":"LY_TYPE_STRING"},
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_MEMBER/sonic-vlan:VLAN_MEMBER_LIST/sonic-vlan:port",
+     "data_type":"LY_TYPE_STRING"},
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_MEMBER/sonic-vlan:VLAN_MEMBER_LIST/sonic-vlan:vlanid",
+     "data_type":"LY_TYPE_UINT16"}
+   ],
+  "leafref_path":[
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_INTERFACE/sonic-vlan:VLAN_INTERFACE_LIST/sonic-vlan:vlanid",
+     "leafref_path":"../../../VLAN/VLAN_LIST/vlanid"},
+    {"xpath":"/sonic-interface:sonic-interface/sonic-interface:INTERFACE/sonic-interface:INTERFACE_LIST/sonic-interface:interface",
+     "leafref_path":"/sonic-port:sonic-port/sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name"},
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_MEMBER/sonic-vlan:VLAN_MEMBER_LIST/sonic-vlan:port",
+     "leafref_path":"/sonic-port:sonic-port/sonic-port:PORT/sonic-port:PORT_LIST/sonic-port:port_name"},
+    {"xpath":"/sonic-vlan:sonic-vlan/sonic-vlan:VLAN_MEMBER/sonic-vlan:VLAN_MEMBER_LIST/sonic-vlan:vlanid",
+     "leafref_path":"../../../VLAN/VLAN_LIST/vlanid"}
    ]
 }

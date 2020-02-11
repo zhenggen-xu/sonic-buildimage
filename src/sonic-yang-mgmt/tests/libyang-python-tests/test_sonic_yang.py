@@ -239,6 +239,21 @@ class Test_SonicYang(object):
             data_type = yang_s.get_leafref_type(xpath)
             assert expected_type == data_type
 
+    def test_get_leafref_path(self, yang_s, data):
+        for node in data['leafref_path']:
+            xpath = str(node['xpath'])
+            expected_path = node['leafref_path']
+            path = yang_s.get_leafref_path(xpath)
+            assert expected_path == path
+
+    def test_get_leafref_type_schema(self, yang_s, data):
+        for node in data['leafref_type_schema']:
+            xpath = str(node['xpath'])
+            expected = node['data_type']
+            expected_type = yang_s.str_to_type(expected)
+            data_type = yang_s.get_leafref_type_schema(xpath)
+            assert expected_type == data_type
+
     def test_xlate_rev_xlate(self):
         # This Test is with Sonic YANG model, so create class from start
         # read the config

@@ -614,7 +614,6 @@ class sonic_yang:
         if (data_node is not None):
             subtype = data_node.subtype()
             if (subtype is not None):
-                value = subtype.value_str()
                 if data_node.schema().subtype().type().base() != ly.LY_TYPE_LEAFREF:
                     print("get_leafref_type() node type for data xpath: {} is not LEAFREF".format(data_xpath))
                     return ly.LY_TYPE_UNKNOWN
@@ -622,3 +621,41 @@ class sonic_yang:
                     return subtype.value_type()
 
         return ly.LY_TYPE_UNKNOWN
+
+    """
+    get_leafref_path():   find the leafref path
+    input:    schema_xpath - xpath of a schema node
+    output:   path value of the leafref node
+    """
+    def get_leafref_path (self, schema_xpath):
+        schema_node = self.find_schema_node(schema_xpath)
+        if (schema_node is not None):
+            subtype = schema_node.subtype()
+            if (subtype is not None):
+                if subtype.type().base() != ly.LY_TYPE_LEAFREF:
+                    return None
+                else:
+                    return subtype.type().info().lref().path()
+
+        return None
+
+    """
+    get_leafref_type_schema:   find the type of node that leafref references to
+    input:    schema_xpath - xpath of a schema node
+    output:   type of the node this leafref references to
+    """
+    def get_leafref_type_schema (self, schema_xpath):
+        schema_node = self.find_schema_node(schema_xpath)
+        if (schema_node is not None):
+            subtype = schema_node.subtype()
+            if (subtype is not None):
+                if subtype.type().base() != ly.LY_TYPE_LEAFREF:
+                    return None
+                else:
+                    leafref_path = subtype.type().info().lref().path()
+                    target = subtype.type().info().lref().target()
+                    target_path = target.path()
+                    target_type = self.get_data_type(target_path)
+                    return target_type
+
+        return None
