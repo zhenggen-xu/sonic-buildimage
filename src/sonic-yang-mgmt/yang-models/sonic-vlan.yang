@@ -140,7 +140,6 @@ module sonic-vlan {
 				}
 
 				leaf admin_status {
-					mandatory true;
 					type head:admin_status;
 				}
 
@@ -172,7 +171,6 @@ module sonic-vlan {
 
 				leaf port {
 					/* key elements are mandatory by default */
-					mandatory true;
 					type leafref {
 						path /port:sonic-port/port:PORT/port:PORT_LIST/port:port_name;
 					}
