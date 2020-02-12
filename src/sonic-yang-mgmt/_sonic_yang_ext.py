@@ -304,7 +304,7 @@ using yang model. Output will be stored in self.xlateJson
 """
 def xlateContainer(self, model, yang, config, table):
 
-    # To Handle mupltiple, Make a copy of config, because we delete keys
+    # To Handle multiple List, Make a copy of config, because we delete keys
     # from config after each match. This is done to match one pkey with one list.
     configC = config.copy()
 
