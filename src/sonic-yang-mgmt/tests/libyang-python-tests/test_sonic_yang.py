@@ -7,11 +7,17 @@ import json
 import getopt
 import subprocess
 import glob
+import logging
 from ijson import items as ijson_itmes
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 modules_path = os.path.dirname(test_path)
 sys.path.insert(0, modules_path)
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger("YANG-TEST")
+log.setLevel(logging.INFO)
+log.addHandler(logging.NullHandler())
 
 class Test_SonicYang(object):
     # class vars
@@ -228,17 +234,23 @@ class Test_SonicYang(object):
 
         syc.get_data()
 
-        if syc.jIn == syc.revXlateJson:
+        if syc.jIn and syc.jIn == syc.revXlateJson:
             print("Xlate and Rev Xlate Passed")
-        else:
+        elif syc.jIn :
             # Right now, interface and vlan_interface will have default diff due to ip_prefix
             from jsondiff import diff
             configDiff = diff(syc.jIn, syc.revXlateJson, syntax='symmetric')
+            log.info(configDiff)
             for key in configDiff.keys():
                 if 'INTERFACE' not in key:
                     print("Xlate and Rev Xlate failed")
-                    sys.exit(1)
+                    # lets make it fail
+                    assert True == False
             print("Xlate and Rev Xlate Passed")
+        else:
+            print("Xlate and Rev Xlate failed")
+            # lets make it fail
+            assert True == False
 
         return
 

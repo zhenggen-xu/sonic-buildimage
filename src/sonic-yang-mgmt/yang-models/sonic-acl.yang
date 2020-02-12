@@ -18,6 +18,11 @@ module sonic-acl {
 		revision-date 2019-07-01;
 	}
 
+	import sonic-extension {
+		prefix ext;
+		revision-date 2019-07-01;
+	}
+
 	import sonic-port {
 		prefix port;
 		revision-date 2019-07-01;
@@ -47,6 +52,10 @@ module sonic-acl {
 			list ACL_RULE_LIST {
 
 				key "ACL_TABLE_NAME RULE_NAME";
+
+				ext:key-regex-configdb-to-yang "^([a-zA-Z0-9_-]+)|([a-zA-Z0-9_-]+)$";
+
+				ext:key-regex-yang-to-configdb "<ACL_TABLE_NAME>|<RULE_NAME>";
 
 				leaf ACL_TABLE_NAME {
 					type leafref {
@@ -231,6 +240,10 @@ module sonic-acl {
 			list ACL_TABLE_LIST {
 
 				key "ACL_TABLE_NAME";
+
+				ext:key-regex-configdb-to-yang "^([a-zA-Z0-9-_]+)$";
+
+				ext:key-regex-yang-to-configdb "<ACL_TABLE_NAME>";
 
 				leaf ACL_TABLE_NAME {
 					type string;

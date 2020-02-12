@@ -1,6 +1,8 @@
 module sonic-head {
 
-    namespace "http://sonic-head";
+    yang-version 1.1;
+
+    namespace "http://github.com/Azure/sonic-head";
     prefix sonic-head;
 
     organization "Linkedin Corporation";
@@ -8,11 +10,11 @@ module sonic-head {
     contact "lnos_coders@linkedin.com";
 
     description "Head yang Module for SONiC OS";
-    
+
     revision 2019-07-01 {
         description "First Revision";
     }
-    
+
     typedef ip-family {
         type enumeration {
             enum IPv4;
@@ -68,5 +70,10 @@ module sonic-head {
             enum untagged;
             enum priority_tagged;
         }
+    }
+
+    extension key-regex-configdb-to-yang {
+        description "Key regex used to convert config DB keys to YANG Config";
+        argument "value";
     }
 }
