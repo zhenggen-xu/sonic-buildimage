@@ -71,7 +71,7 @@ class sonic_yang:
     """
     def load_schema_module(self, yang_file):
         try:
-            self.ctx.parse_module_path(yang_file, ly.LYS_IN_YANG)
+            return self.ctx.parse_module_path(yang_file, ly.LYS_IN_YANG)
         except Exception as e:
             print("Failed to load yang module file: " + yang_file)
             self.fail(e)

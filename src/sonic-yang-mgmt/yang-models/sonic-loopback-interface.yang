@@ -12,6 +12,11 @@ module sonic-loopback-interface {
         revision-date 2019-07-01;
     }
 
+    import sonic-extension {
+        prefix ext;
+        revision-date 2019-07-01;
+    }
+
     organization "Linkedin Corporation";
 
     contact "lnos_coders@linkedin.com";
@@ -30,6 +35,10 @@ module sonic-loopback-interface {
             list LOOPBACK_INTERFACE_LIST {
                 key "loopback_interface_name";
 
+                ext:key-regex-configdb-to-yang "^([a-zA-Z0-9-_]+)$";
+
+                ext:key-regex-yang-to-configdb "<loopback_interface_name>";
+
                 leaf loopback_interface_name{
                     type string;
                 }
@@ -47,8 +56,11 @@ module sonic-loopback-interface {
 
                 key "loopback_interface_name ip-prefix";
 
-                leaf loopback_interface_name{
+                ext:key-regex-configdb-to-yang "^([a-zA-Z0-9-_]+)|([a-fA-F0-9:./]+$)";
 
+                ext:key-regex-yang-to-configdb "<loopback_interface_name>|<ip-prefix>";
+
+                leaf loopback_interface_name{
                     /* This node must be present in LOOPBACK_INTERFACE_LIST */
                     must "(current() = ../../LOOPBACK_INTERFACE_LIST[loopback_interface_name=current()]/loopback_interface_name)"
                     {

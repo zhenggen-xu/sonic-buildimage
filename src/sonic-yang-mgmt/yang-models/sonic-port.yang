@@ -1,5 +1,7 @@
 module sonic-port{
 
+	yang-version 1.1;
+
 	namespace "http://github.com/Azure/sonic-port";
 	prefix port;
 
@@ -16,6 +18,11 @@ module sonic-port{
 		revision-date 2019-07-01;
 	}
 
+	import sonic-extension {
+		prefix ext;
+		revision-date 2019-07-01;
+	}
+
 	organization "Linkedin Corporation";
 
 	contact "lnos_coders@linkedin.com";
@@ -27,6 +34,7 @@ module sonic-port{
 	}
 
 	container sonic-port{
+
 		container PORT {
 
 			description "PORT part of config_db.json";
@@ -34,6 +42,10 @@ module sonic-port{
 			list PORT_LIST {
 
 				key "port_name";
+
+				ext:key-regex-configdb-to-yang "^(Ethernet[0-9]+)$";
+
+				ext:key-regex-yang-to-configdb "<port_name>";
 
 				leaf port_name {
 					type string {
