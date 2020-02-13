@@ -540,3 +540,122 @@ class sonic_yang:
             self.fail(e)
 
         return ref_list
+
+    """
+    get_module_prefix:   get the prefix of a Yang module
+    input:    name of the Yang module
+    output:   prefix of the Yang module
+    """
+    def get_module_prefix(self, module_name):
+        prefix = ""
+        try:
+            module = self.get_module(module_name)
+        except Exception as e:
+            self.fail(e)
+            return prefix
+        else:
+            return module.prefix()
+
+    """
+    str_to_type:   map string to type of node
+    input:    string
+    output:   type
+    """
+    def str_to_type (self, type_str):
+           mapped_type = {
+                "LY_TYPE_DER":ly.LY_TYPE_DER,
+                "LY_TYPE_BINARY":ly.LY_TYPE_BINARY,
+                "LY_TYPE_BITS":ly.LY_TYPE_BITS,
+                "LY_TYPE_BOOL":ly.LY_TYPE_BOOL,
+                "LY_TYPE_DEC64":ly.LY_TYPE_DEC64,
+                "LY_TYPE_EMPTY":ly.LY_TYPE_EMPTY,
+                "LY_TYPE_ENUM":ly.LY_TYPE_ENUM,
+                "LY_TYPE_IDENT":ly.LY_TYPE_IDENT,
+                "LY_TYPE_INST":ly.LY_TYPE_INST,
+                "LY_TYPE_LEAFREF":ly.LY_TYPE_LEAFREF,
+                "LY_TYPE_STRING":ly.LY_TYPE_STRING,
+                "LY_TYPE_UNION":ly.LY_TYPE_UNION,
+                "LY_TYPE_INT8":ly.LY_TYPE_INT8,
+                "LY_TYPE_UINT8":ly.LY_TYPE_UINT8,
+                "LY_TYPE_INT16":ly.LY_TYPE_INT16,
+                "LY_TYPE_UINT16":ly.LY_TYPE_UINT16,
+                "LY_TYPE_INT32":ly.LY_TYPE_INT32,
+                "LY_TYPE_UINT32":ly.LY_TYPE_UINT32,
+                "LY_TYPE_INT64":ly.LY_TYPE_INT64,
+                "LY_TYPE_UINT64":ly.LY_TYPE_UINT64,
+                "LY_TYPE_UNKNOWN":ly.LY_TYPE_UNKNOWN
+           }
+
+           if type_str not in mapped_type:
+               return ly.LY_TYPE_UNKNOWN
+
+           return mapped_type[type_str]
+
+    def get_data_type (self, schema_xpath):
+        try:
+            schema_node = self.find_schema_node(schema_xpath)
+        except Exception as e:
+            print("get_data_type(): Failed to find schema node from xpath: {}".format(schema_xpath))
+            self.fail(e)
+            return None
+
+        if (schema_node is not None):
+           return schema_node.subtype().type().base()
+
+        return ly.LY_TYPE_UNKNOWN
+
+    """
+    get_leafref_type:   find the type of node that leafref references to
+    input:    data_xpath - xpath of a data node
+    output:   type of the node this leafref references to
+    """
+    def get_leafref_type (self, data_xpath):
+        data_node = self.find_data_node(data_xpath)
+        if (data_node is not None):
+            subtype = data_node.subtype()
+            if (subtype is not None):
+                if data_node.schema().subtype().type().base() != ly.LY_TYPE_LEAFREF:
+                    print("get_leafref_type() node type for data xpath: {} is not LEAFREF".format(data_xpath))
+                    return ly.LY_TYPE_UNKNOWN
+                else:
+                    return subtype.value_type()
+
+        return ly.LY_TYPE_UNKNOWN
+
+    """
+    get_leafref_path():   find the leafref path
+    input:    schema_xpath - xpath of a schema node
+    output:   path value of the leafref node
+    """
+    def get_leafref_path (self, schema_xpath):
+        schema_node = self.find_schema_node(schema_xpath)
+        if (schema_node is not None):
+            subtype = schema_node.subtype()
+            if (subtype is not None):
+                if subtype.type().base() != ly.LY_TYPE_LEAFREF:
+                    return None
+                else:
+                    return subtype.type().info().lref().path()
+
+        return None
+
+    """
+    get_leafref_type_schema:   find the type of node that leafref references to
+    input:    schema_xpath - xpath of a schema node
+    output:   type of the node this leafref references to
+    """
+    def get_leafref_type_schema (self, schema_xpath):
+        schema_node = self.find_schema_node(schema_xpath)
+        if (schema_node is not None):
+            subtype = schema_node.subtype()
+            if (subtype is not None):
+                if subtype.type().base() != ly.LY_TYPE_LEAFREF:
+                    return None
+                else:
+                    leafref_path = subtype.type().info().lref().path()
+                    target = subtype.type().info().lref().target()
+                    target_path = target.path()
+                    target_type = self.get_data_type(target_path)
+                    return target_type
+
+        return None

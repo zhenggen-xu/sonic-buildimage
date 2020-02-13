@@ -214,6 +214,46 @@ class Test_SonicYang(object):
         yang_s.merge_data(data_merge_file, yang_dir)
         #yang_s.root.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
 
+    #test get module prefix
+    def test_get_module_prefix(self, yang_s, data):
+        for node in data['prefix']:
+            xpath = str(node['module_name'])
+            expected = node['module_prefix']
+            prefix = yang_s.get_module_prefix(xpath)
+            assert expected == prefix
+
+    #test get data type
+    def test_get_data_type(self, yang_s, data):
+        for node in data['data_type']:
+            xpath = str(node['xpath'])
+            expected = node['data_type']
+            expected_type = yang_s.str_to_type(expected)
+            data_type = yang_s.get_data_type(xpath)
+            assert expected_type == data_type
+
+    def test_get_leafref_type(self, yang_s, data):
+        for node in data['leafref_type']:
+            xpath = str(node['xpath'])
+            expected = node['data_type']
+            expected_type = yang_s.str_to_type(expected)
+            data_type = yang_s.get_leafref_type(xpath)
+            assert expected_type == data_type
+
+    def test_get_leafref_path(self, yang_s, data):
+        for node in data['leafref_path']:
+            xpath = str(node['xpath'])
+            expected_path = node['leafref_path']
+            path = yang_s.get_leafref_path(xpath)
+            assert expected_path == path
+
+    def test_get_leafref_type_schema(self, yang_s, data):
+        for node in data['leafref_type_schema']:
+            xpath = str(node['xpath'])
+            expected = node['data_type']
+            expected_type = yang_s.str_to_type(expected)
+            data_type = yang_s.get_leafref_type_schema(xpath)
+            assert expected_type == data_type
+
     def test_xlate_rev_xlate(self):
         # This Test is with Sonic YANG model, so create class from start
         # read the config
