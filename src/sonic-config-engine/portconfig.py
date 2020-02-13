@@ -23,6 +23,7 @@ HWSKU_JSON = 'hwsku.json'
 PORT_STR = "Ethernet"
 BRKOUT_MODE = "default_brkout_mode"
 CUR_BRKOUT_MODE = "brkout_mode"
+INTF_KEY = "interfaces"
 
 BRKOUT_PATTERN = r'(\d{1,3})x(\d{1,3}G)(\[\d{1,3}G\])?(\((\d{1,3})\))?'
 
@@ -208,21 +209,24 @@ def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=N
     if not hwsku_dict:
         raise Exception("hwsku_dict is none")
 
-    for intf in port_dict:
-        if intf not in hwsku_dict:
+    if INTF_KEY not in port_dict or INTF_KEY not in  hwsku_dict:
+        raise Exception("INTF_KEY is not present in appropriate file")
+
+    for intf in port_dict[INTF_KEY]:
+        if intf not in hwsku_dict[INTF_KEY]:
             raise Exception("{} is not available in hwsku_dict".format(intf))
         if str(interface_name) == intf:
             brkout_mode = target_brkout_mode
         else:
-            brkout_mode = hwsku_dict[intf][BRKOUT_MODE]
+            brkout_mode = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
 
-        index = port_dict[intf]['index']
-        alias_at_lanes = port_dict[intf]['alias_at_lanes']
-        lanes = port_dict[intf]['lanes']
+        index = port_dict[INTF_KEY][intf]['index']
+        alias_at_lanes = port_dict[INTF_KEY][intf]['alias_at_lanes']
+        lanes = port_dict[INTF_KEY][intf]['lanes']
 
         # if User does not specify brkout_mode, take default_brkout_mode from hwsku.json
         if brkout_mode is None:
-            brkout_mode = hwsku_dict[intf][BRKOUT_MODE]
+            brkout_mode = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
 
         # Get match_list for Asymmetric breakout mode
         if re.search("\+",brkout_mode) is not None:
@@ -285,8 +289,10 @@ def parse_breakout_mode(hwsku_json_file):
     hwsku_dict = readJson(hwsku_json_file)
     if not hwsku_dict:
         raise Exception("hwsku_dict is empty")
+    if INTF_KEY not in  hwsku_dict:
+        raise Exception("INTF_KEY is not present in hwsku_dict")
 
     for intf in hwsku_dict:
         brkout_table[intf] = {}
-        brkout_table[intf][CUR_BRKOUT_MODE] = hwsku_dict[intf][BRKOUT_MODE]
+        brkout_table[intf][CUR_BRKOUT_MODE] = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
     return brkout_table
