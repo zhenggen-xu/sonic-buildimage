@@ -59,6 +59,9 @@ RUN pip install six
 RUN pip install pyroute2==0.5.3 netifaces==0.10.7
 RUN pip install monotonic==1.5
 RUN pip install click==7.0.0
+RUN pip install ijson
+RUN pip install jsondiff
+RUN pip install xmltodict
 
 {% if docker_sonic_vs_debs.strip() -%}
 # Copy locally-built Debian package dependencies
@@ -83,6 +86,21 @@ COPY python-debs/{{ deb }} /debs/
 RUN dpkg_apt() { [ -f $1 ] && { dpkg -i $1 || apt-get -y install -f; } || return 1; }; dpkg_apt /debs/{{ deb }}
 {%- endfor %}
 {%- endif %}
+
+{% if docker_sonic_vs_whls.strip() %}
+COPY \
+{% for whl in docker_sonic_vs_whls.split(' ') -%}
+python-wheels/{{ whl }}{{' '}}
+{%- endfor -%}
+python-wheels/
+{%- endif -%}
+
+{% if docker_sonic_vs_whls.strip() %}
+RUN pip install \
+{% for whl in docker_sonic_vs_whls.split(' ') -%}
+python-wheels/{{ whl }}{{' '}}
+{%- endfor %}
+{%- endif -%}
 
 # Clean up
 RUN apt-get clean -y
