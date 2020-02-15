@@ -119,12 +119,10 @@ def get_port_config(hwsku=None, platform=None, port_config_file=None, hwsku_conf
     if port_config_file.endswith('.json'):
         if not hwsku_config_file:
              hwsku_json_file = get_hwsku_file_name(hwsku, platform)
-             if not hwsku_config_file:
+             if not hwsku_json_file:
                 return ({}, {})
         else:
             hwsku_json_file = hwsku_config_file
-        if not hwsku_json_file:
-            raise Exception("'hwsku_json' file does not exist!!! This file is necessary to proceed forward.")
 
         return parse_platform_json_file(hwsku_json_file, port_config_file)
 
