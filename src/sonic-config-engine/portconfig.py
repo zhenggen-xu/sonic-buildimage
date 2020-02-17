@@ -88,14 +88,14 @@ def get_hwsku_file_name(hwsku=None, platform=None):
     if hwsku:
         if platform:
             hwsku_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH, platform, hwsku, HWSKU_JSON))
-        hwsku_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, HWSKU_JSON)
-        hwsku_candidates_Json.append(os.path.join(SONIC_ROOT_PATH, hwsku, HWSKU_JSON)
+        hwsku_candidates_Json.append(os.path.join(PLATFORM_ROOT_PATH_DOCKER, hwsku, HWSKU_JSON))
+        hwsku_candidates_Json.append(os.path.join(SONIC_ROOT_PATH, hwsku, HWSKU_JSON))
     for candidate in hwsku_candidates_Json:
         if os.path.isfile(candidate):
             return candidate
     return None
 
-def get_port_config(hwsku=None, platform=None, port_config_file=None):
+def get_port_config(hwsku=None, platform=None, port_config_file=None, hwsku_config_file=None):
     config_db = db_connect_configdb()
 
     # If available, Read from CONFIG DB first
@@ -114,11 +114,15 @@ def get_port_config(hwsku=None, platform=None, port_config_file=None):
         if not port_config_file:
             return ({}, {})
 
+
     # Read from 'platform.json' file
     if port_config_file.endswith('.json'):
-        hwsku_json_file = get_hwsku_file_name(hwsku, platform)
-        if not hwsku_json_file:
-            raise Exception("'hwsku_json' file does not exist!!! This file is necessary to proceed forward.")
+        if not hwsku_config_file:
+             hwsku_json_file = get_hwsku_file_name(hwsku, platform)
+             if not hwsku_json_file:
+                return ({}, {})
+        else:
+            hwsku_json_file = hwsku_config_file
 
         return parse_platform_json_file(hwsku_json_file, port_config_file)
 
