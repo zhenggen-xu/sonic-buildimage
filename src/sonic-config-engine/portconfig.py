@@ -200,6 +200,33 @@ def gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k,  off
     else:
         raise Exception('Regex return for k is None...')
 
+"""
+Given a port and breakout mode, this method returns
+the list of child ports using platform_json file
+"""
+def get_child_ports(interface, breakout_mode, platform_json_file):
+    child_ports = {}
+
+    port_dict = readJson(platform_json_file)
+
+    index = port_dict[INTF_KEY][interface]['index']
+    alias_at_lanes = port_dict[INTF_KEY][interface]['alias_at_lanes']
+    lanes = port_dict[INTF_KEY][interface]['lanes']
+
+    # Asymmetric breakout mode
+    if re.search("\+",breakout_mode) is not None:
+        breakout_parts = breakout_mode.split("+")
+        match_list = [re.match(BRKOUT_PATTERN, i).groups() for i in breakout_parts]
+
+    # Symmetric breakout mode
+    else:
+        match_list = [re.match(BRKOUT_PATTERN, breakout_mode).groups()]
+
+    offset = 0
+    parent_intf_id = int(re.search("Ethernet(\d+)", interface).group(1))
+    for k in match_list:
+        offset = gen_port_config(child_ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
+    return child_ports
 
 def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=None, target_brkout_mode=None):
     ports = {}
