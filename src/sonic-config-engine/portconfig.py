@@ -213,6 +213,15 @@ def get_child_ports(interface, breakout_mode, platform_json_file):
     alias_at_lanes = port_dict[INTF_KEY][interface]['alias_at_lanes']
     lanes = port_dict[INTF_KEY][interface]['lanes']
 
+    """
+    Example of match_list for some breakout_mode using regex
+        Breakout Mode -------> Match_list
+        -----------------------------
+        2x25G(2)+1x50G(2) ---> [('2', '25G', None, '(2)', '2'), ('1', '50G', None, '(2)', '2')]
+        1x50G(2)+2x25G(2) ---> [('1', '50G', None, '(2)', '2'), ('2', '25G', None, '(2)', '2')]
+        1x100G[40G] ---------> [('1', '100G', '[40G]', None, None)]
+        2x50G ---------------> [('2', '50G', None, None, None)]
+    """
     # Asymmetric breakout mode
     if re.search("\+",breakout_mode) is not None:
         breakout_parts = breakout_mode.split("+")
@@ -228,11 +237,11 @@ def get_child_ports(interface, breakout_mode, platform_json_file):
         offset = gen_port_config(child_ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
     return child_ports
 
-def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=None, target_brkout_mode=None):
+def parse_platform_json_file(hwsku_json_file, platform_json_file):
     ports = {}
     port_alias_map = {}
 
-    port_dict = readJson(port_config_file)
+    port_dict = readJson(platform_json_file)
     hwsku_dict = readJson(hwsku_json_file)
 
     if not port_dict:
@@ -246,53 +255,13 @@ def parse_platform_json_file(hwsku_json_file, port_config_file, interface_name=N
     for intf in port_dict[INTF_KEY]:
         if intf not in hwsku_dict[INTF_KEY]:
             raise Exception("{} is not available in hwsku_dict".format(intf))
-        if str(interface_name) == intf:
-            brkout_mode = target_brkout_mode
-        else:
-            brkout_mode = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
 
-        index = port_dict[INTF_KEY][intf]['index']
-        alias_at_lanes = port_dict[INTF_KEY][intf]['alias_at_lanes']
-        lanes = port_dict[INTF_KEY][intf]['lanes']
+        # take default_brkout_mode from hwsku.json
+        brkout_mode = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
 
-        # if User does not specify brkout_mode, take default_brkout_mode from hwsku.json
-        if brkout_mode is None:
-            brkout_mode = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
+        child_ports = get_child_ports(intf, brkout_mode, platform_json_file)
+        ports.update(child_ports)
 
-        # Get match_list for Asymmetric breakout mode
-        if re.search("\+",brkout_mode) is not None:
-            brkout_parts = brkout_mode.split("+")
-            match_list = [re.match(BRKOUT_PATTERN, i).groups() for i in brkout_parts]
-
-        # Get match_list for Symmetric breakout mode
-        else:
-            match_list = [re.match(BRKOUT_PATTERN, brkout_mode).groups()]
-
-        """
-        Example of match_list for some breakout_mode using regex
-            Breakout Mode -------> Match_list
-            -----------------------------
-            2x25G(2)+1x50G(2) ---> [('2', '25G', None, '(2)', '2'), ('1', '50G', None, '(2)', '2')]
-            1x50G(2)+2x25G(2) ---> [('1', '50G', None, '(2)', '2'), ('2', '25G', None, '(2)', '2')]
-            1x100G[40G] ---------> [('1', '100G', '[40G]', None, None)]
-            2x50G ---------------> [('2', '50G', None, None, None)]
-        """
-        if match_list is not None:
-            offset = 0
-            parent_intf_id = int(re.search("Ethernet(\d+)", intf).group(1))
-
-            if interface_name is not None and interface_name == intf:
-                ports = {}
-
-            for k in match_list:
-                # k is a tuple in "match_list"
-                offset = gen_port_config(ports, parent_intf_id, index, alias_at_lanes, lanes, k, offset)
-            brkout_mode = None
-
-            if interface_name is not None and interface_name == intf:
-                return ports
-        else:
-            raise Exception("match_list should not be None.")
     if not ports:
         raise Exception("Ports dictionary is empty")
 
@@ -323,7 +292,7 @@ def parse_breakout_mode(hwsku_json_file):
     if INTF_KEY not in  hwsku_dict:
         raise Exception("INTF_KEY is not present in hwsku_dict")
 
-    for intf in hwsku_dict:
+    for intf in hwsku_dict[INTF_KEY]:
         brkout_table[intf] = {}
         brkout_table[intf][CUR_BRKOUT_MODE] = hwsku_dict[INTF_KEY][intf][BRKOUT_MODE]
     return brkout_table
