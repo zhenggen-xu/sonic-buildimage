@@ -26,10 +26,11 @@ SONIC_STRETCH_DBG_DOCKERS += $(DOCKER_SFLOW_DBG)
 endif
 
 $(DOCKER_SFLOW)_CONTAINER_NAME = sflow
-$(DOCKER_SFLOW)_RUN_OPT += --net=host --privileged -t
+$(DOCKER_SFLOW)_RUN_OPT += --privileged -t
 $(DOCKER_SFLOW)_RUN_OPT += -v /etc/sonic:/etc/sonic:ro
 $(DOCKER_SFLOW)_RUN_OPT += -v /host/warmboot:/var/warmboot
 
 $(DOCKER_SFLOW)_BASE_IMAGE_FILES += psample:/usr/bin/psample
 $(DOCKER_SFLOW)_BASE_IMAGE_FILES += sflowtool:/usr/bin/sflowtool
+$(DOCKER_SFLOW)_BASE_IMAGE_FILES += monit_sflow:/etc/monit/conf.d
 $(DOCKER_SFLOW)_FILES += $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT)

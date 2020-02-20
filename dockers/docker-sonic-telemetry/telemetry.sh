@@ -6,6 +6,7 @@ X509=`sonic-cfggen -d -v "DEVICE_METADATA['x509']"`
 TELEMETRY=`sonic-cfggen -d -v 'TELEMETRY.keys() | join(" ") if TELEMETRY'`
 
 TELEMETRY_ARGS=" -logtostderr"
+export CVL_SCHEMA_PATH=/usr/sbin/schema
 
 if [ -n "$X509" ]; then
 	SERVER_CRT=`sonic-cfggen -d -v "DEVICE_METADATA['x509']['server_crt']"`
@@ -28,7 +29,7 @@ fi
 
 # If no configuration entry exists for TELEMETRY, create one default port
 if [ -z $TELEMETRY ]; then
-    redis-cli -n 4 hset "TELEMETRY|gnmi" port 8080
+    sonic-db-cli CONFIG_DB hset "TELEMETRY|gnmi" port 8080
 fi
 
 PORT=`sonic-cfggen -d -v "TELEMETRY['gnmi']['port']"`

@@ -86,9 +86,10 @@ class Daemon(object):
         self.callbacks = defaultdict(lambda : defaultdict(list)) # db -> table -> []
         self.subscribers = set()
 
-    def add_manager(self, db, table_name, callback):
+    def add_manager(self, db_name, table_name, callback):
+        db = swsscommon.SonicDBConfig.getDbId(db_name)
         if db not in self.db_connectors:
-            self.db_connectors[db] = swsscommon.DBConnector(db, swsscommon.DBConnector.DEFAULT_UNIXSOCKET, 0)
+            self.db_connectors[db] = swsscommon.DBConnector(db_name, 0)
 
         if table_name not in self.callbacks[db]:
             conn = self.db_connectors[db]
@@ -203,6 +204,8 @@ class Manager(object):
             syslog.syslog(syslog.LOG_ERR, 'Invalid operation "%s" for key "%s"' % (op, key))
 
     def on_deps_change(self):
+        if not self.directory.available_deps(self.deps):
+            return
         new_queue = []
         for key, data in self.set_queue:
             res = self.set_handler(key, data)
@@ -223,7 +226,7 @@ class BGPDeviceMetaMgr(Manager):
             daemon,
             directory,
             [],
-            swsscommon.CONFIG_DB,
+            "CONFIG_DB",
             swsscommon.CFG_DEVICE_METADATA_TABLE_NAME
         )
 
@@ -248,7 +251,7 @@ class BGPNeighborMetaMgr(Manager):
             daemon,
             directory,
             [],
-            swsscommon.CONFIG_DB,
+            "CONFIG_DB",
             swsscommon.CFG_DEVICE_NEIGHBOR_METADATA_TABLE_NAME
         )
 
@@ -270,7 +273,7 @@ class BGPPeerMgr(Manager):
                 ("meta", "localhost/bgp_asn"),
                 ("neigmeta", ""),
             ],
-            swsscommon.CONFIG_DB,
+            "CONFIG_DB",
             swsscommon.CFG_BGP_NEIGHBOR_TABLE_NAME
         )
         self.peers = self.load_peers()

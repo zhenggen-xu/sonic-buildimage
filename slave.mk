@@ -100,6 +100,10 @@ ifneq (,$(filter $(CONFIGURED_ARCH), armhf arm64))
 ENABLE_SYSTEM_TELEMETRY = N
 endif
 
+ifeq ($(SONIC_ENABLE_RESTAPI),y)
+ENABLE_RESTAPI = y
+endif
+
 ifeq ($(SONIC_ENABLE_SYNCD_RPC),y)
 ENABLE_SYNCD_RPC = y
 endif
@@ -190,6 +194,8 @@ $(info "ENABLE_ORGANIZATION_EXTENSIONS"  : "$(ENABLE_ORGANIZATION_EXTENSIONS)")
 $(info "HTTP_PROXY"                      : "$(HTTP_PROXY)")
 $(info "HTTPS_PROXY"                     : "$(HTTPS_PROXY)")
 $(info "ENABLE_SYSTEM_TELEMETRY"         : "$(ENABLE_SYSTEM_TELEMETRY)")
+$(info "ENABLE_RESTAPI"                  : "$(ENABLE_RESTAPI)")
+$(info "ENABLE_ZTP"                      : "$(ENABLE_ZTP)")
 $(info "SONIC_DEBUGGING_ON"              : "$(SONIC_DEBUGGING_ON)")
 $(info "SONIC_PROFILING_ON"              : "$(SONIC_PROFILING_ON)")
 $(info "KERNEL_PROCURE_METHOD"           : "$(KERNEL_PROCURE_METHOD)")
@@ -642,6 +648,8 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	export enable_organization_extensions="$(ENABLE_ORGANIZATION_EXTENSIONS)"
 	export enable_dhcp_graph_service="$(ENABLE_DHCP_GRAPH_SERVICE)"
 	export enable_system_telemetry="$(ENABLE_SYSTEM_TELEMETRY)"
+	export enable_restapi="$(ENABLE_RESTAPI)"
+	export enable_ztp="$(ENABLE_ZTP)"
 	export shutdown_bgp_on_start="$(SHUTDOWN_BGP_ON_START)"
 	export enable_pfcwd_on_start="$(ENABLE_PFCWD_ON_START)"
 	export installer_debs="$(addprefix $(STRETCH_DEBS_PATH)/,$($*_INSTALLS))"
@@ -660,15 +668,39 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 		export docker_container_name="$($(docker:-dbg.gz=.gz)_CONTAINER_NAME)"
 		$(eval $(docker:-dbg.gz=.gz)_RUN_OPT += $($(docker:-dbg.gz=.gz)_$($*_IMAGE_TYPE)_RUN_OPT))
 		export docker_image_run_opt="$($(docker:-dbg.gz=.gz)_RUN_OPT)"
-		j2 files/build_templates/docker_image_ctl.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).sh
+
 		if [ -f files/build_templates/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 ]; then
 			j2 files/build_templates/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service
 		fi
+
+		if [ -f files/build_templates/multi_instance/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.service.j2 ]; then
+			j2 files/build_templates/multi_instance/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.service.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.service
+
+			# performs the same check as the elif above, except with make commands so eval behaves properly
+			$(if $(shell ls files/build_templates/multi_instance/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.service.j2 2>/dev/null),\
+				$(eval $(docker:-dbg.gz=.gz)_TEMPLATE = yes)
+			 )
+		fi
+		if [ -f files/build_templates/single_instance/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 ]; then
+			j2 files/build_templates/single_instance/$($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service
+		fi
+		j2 files/build_templates/docker_image_ctl.j2 > $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).sh
 		chmod +x $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).sh
 	)
 
+	# Exported variables are used by sonic_debian_extension.sh
 	export installer_start_scripts="$(foreach docker, $($*_DOCKERS),$(addsuffix .sh, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME)))"
-	export installer_services="$(foreach docker, $($*_DOCKERS),$(addsuffix .service, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME)))"
+
+	# Marks template services with an "@" according to systemd convention
+	# If the $($docker)_TEMPLATE) variable is set, the service will be treated as a template
+	$(foreach docker, $($*_DOCKERS),\
+		$(if $($(docker:-dbg.gz=.gz)_TEMPLATE),\
+			$(eval SERVICES += "$(addsuffix @.service, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))"),\
+			$(eval SERVICES += "$(addsuffix .service, $($(docker:-dbg.gz=.gz)_CONTAINER_NAME))")
+		)
+	)
+	export installer_services="$(SERVICES)"
+									
 	export installer_extra_files="$(foreach docker, $($*_DOCKERS), $(foreach file, $($(docker:-dbg.gz=.gz)_BASE_IMAGE_FILES), $($(docker:-dbg.gz=.gz)_PATH)/base_image_files/$(file)))"
 
 	j2 -f env files/initramfs-tools/union-mount.j2 onie-image.conf > files/initramfs-tools/union-mount
@@ -699,6 +731,7 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
 	$(foreach docker, $($*_DOCKERS), \
 		rm -f $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).sh
 		rm -f $($(docker:-dbg.gz=.gz)_CONTAINER_NAME).service
+		rm -f $($(docker:-dbg.gz=.gz)_CONTAINER_NAME)@.service
 	)
 
 	$(if $($*_DOCKERS),

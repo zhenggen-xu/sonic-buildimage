@@ -25,9 +25,10 @@ SONIC_INSTALL_DOCKER_DBG_IMAGES += $(DOCKER_LLDP_SV2_DBG)
 SONIC_STRETCH_DBG_DOCKERS += $(DOCKER_LLDP_SV2_DBG)
 
 $(DOCKER_LLDP_SV2)_CONTAINER_NAME = lldp
-$(DOCKER_LLDP_SV2)_RUN_OPT += --net=host --privileged -t
+$(DOCKER_LLDP_SV2)_RUN_OPT += --privileged -t
 $(DOCKER_LLDP_SV2)_RUN_OPT += -v /etc/sonic:/etc/sonic:ro
 
 $(DOCKER_LLDP_SV2)_BASE_IMAGE_FILES += lldpctl:/usr/bin/lldpctl
 $(DOCKER_LLDP_SV2)_BASE_IMAGE_FILES += lldpcli:/usr/bin/lldpcli
+$(DOCKER_LLDP_SV2)_BASE_IMAGE_FILES += monit_lldp:/etc/monit/conf.d
 $(DOCKER_LLDP_SV2)_FILES += $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT)
