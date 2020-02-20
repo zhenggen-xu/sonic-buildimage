@@ -153,7 +153,7 @@ class DaemonBase(object):
         (platform_path, hwsku_path) = self.get_path_to_platform_and_hwsku()
 
         # First check for the presence of the new 'platform.json' file
-        port_config_file_path = "/".join([hwsku_path, PLATFORM_CAP])
+        port_config_file_path = "/".join([platform_path, PLATFORM_CAP])
         if not os.path.isfile(port_config_file_path):
 
             # platform.json doesn't exist. Try loading the legacy 'port_config.ini' file
