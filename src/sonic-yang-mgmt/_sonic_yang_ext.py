@@ -4,6 +4,7 @@
 import yang as ly
 import re
 import pprint
+import syslog
 
 from json import dump, load, dumps, loads
 from xmltodict import parse
@@ -25,7 +26,7 @@ def loadYangModel(self):
         for file in self.yangFiles:
             m = self.load_schema_module(file)
             if m is not None:
-                self.logInFile("module: {} is loaded successfully".format(m.name()))
+                self.sysLog(msg="module: {} is loaded successfully".format(m.name()))
             else:
                 raise(Exception("Could not load module {}".format(file)))
 
@@ -57,7 +58,7 @@ def loadJsonYangModel(self):
             if m is not None:
                 xml = m.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
                 self.yJson.append(parse(xml))
-                self.logInFile("Parsed Json for {}".format(m.name()))
+                self.sysLog(msg="Parsed Json for {}".format(m.name()))
     except Exception as e:
         print('JSON conversion for yang models failed')
         raise e
@@ -147,7 +148,6 @@ KeyDict = {"vlan_name": "Vlan111", "ip-prefix": "2a04:5555:45:6709::1/64"}
 def extractKey(self, tableKey, keys, regex):
 
     keyList = keys.split()
-    #self.logInFile("extractKey {}".format(keyList))
     # get the value groups
     value = re.match(regex, tableKey)
     # create the keyDict
@@ -156,7 +156,6 @@ def extractKey(self, tableKey, keys, regex):
     for k in keyList:
         if value.group(i):
             keyDict[k] = value.group(i)
-            # self.logInFile("extractKey {} {}".format(k, keyDict[k]))
         else:
             raise Exception("Value not found for {} in {}".format(k, tableKey))
         i = i + 1
@@ -257,27 +256,27 @@ def xlateList(self, model, yang, config, table):
     #create a dict to map each key under primary key with a dict yang model.
     #This is done to improve performance of mapping from values of TABLEs in
     #config DB to leaf in YANG LIST.
-
     leafDict = self.createLeafDict(model)
 
     # fetch regex from YANG models.
     keyRegEx = model['ext:key-regex-configdb-to-yang']['@value']
     # seperator `|` has special meaning in regex, so change it appropriately.
     keyRegEx = re.sub('\|', '\\|', keyRegEx)
-
     # get keys from YANG model list itself
     listKeys = model['key']['@value']
+    self.sysLog(msg="xlateList regex:{} keyList:{}".\
+        format(keyRegEx, listKeys))
 
     for pkey in config.keys():
         try:
             vKey = None
-            self.logInFile("xlateList Extract pkey:{} regex:{} keyList:{}\
-                ".format(pkey, keyRegEx, listKeys))
+            self.sysLog(syslog.LOG_DEBUG, "xlateList Extract pkey:{}".\
+                format(pkey))
             # Find and extracts key from each dict in config
             keyDict = self.extractKey(pkey, listKeys, keyRegEx)
             # fill rest of the values in keyDict
             for vKey in config[pkey]:
-                self.logInFile("xlateList vkey {}".format(vKey))
+                self.sysLog(syslog.LOG_DEBUG, "xlateList vkey {}".format(vKey))
                 keyDict[vKey] = self.findYangTypedValue(vKey, \
                                     config[pkey][vKey], leafDict)
             yang.append(keyDict)
@@ -285,7 +284,8 @@ def xlateList(self, model, yang, config, table):
             del config[pkey]
 
         except Exception as e:
-            self.logInFile("xlateList Exception {}".format(e))
+            # log debug, because this exception may occur with multilists
+            self.sysLog(syslog.LOG_DEBUG, "xlateList Exception {}".format(e))
             # with multilist, we continue matching other keys.
             continue
 
@@ -308,7 +308,7 @@ def xlateContainer(self, model, yang, config, table):
        clist['@name'] == model['@name']+"_LIST" and bool(configC):
             #print(clist['@name'])
             yang[clist['@name']] = list()
-            self.logInFile("xlateContainer listD {}".format(clist['@name']))
+            self.sysLog(msg="xlateContainer listD {}".format(clist['@name']))
             self.xlateList(clist, yang[clist['@name']], \
                            configC, table)
             # clean empty lists
@@ -320,14 +320,14 @@ def xlateContainer(self, model, yang, config, table):
     elif clist and isinstance(clist, list) and bool(configC):
         for modelList in clist:
             yang[modelList['@name']] = list()
-            self.logInFile("xlateContainer listL {}".format(modelList['@name']))
+            self.sysLog(msg="xlateContainer listL {}".format(modelList['@name']))
             self.xlateList(modelList, yang[modelList['@name']], configC, table)
             # clean empty lists
             if len(yang[modelList['@name']]) == 0:
                 del yang[modelList['@name']]
 
     if len(configC):
-        self.logInFile("Alert: Remaining keys in Config", obj=configC, json=True)
+        self.sysLog(syslog.LOG_ERR, "Alert: Remaining keys in Config")
         raise(Exception("All Keys are not parsed in {}".format(table)))
 
     return
@@ -346,7 +346,7 @@ def xlateConfigDBtoYang(self, jIn, yangJ):
         # Add new top level container for first table in this container
         yangJ[key] = dict() if yangJ.get(key) is None else yangJ[key]
         yangJ[key][subkey] = dict()
-        self.logInFile("xlateConfigDBtoYang {}:{}".format(key, subkey))
+        self.sysLog(msg="xlateConfigDBtoYang {}:{}".format(key, subkey))
         self.xlateContainer(cmap['container'], yangJ[key][subkey], \
                             jIn[table], table)
 
@@ -418,6 +418,7 @@ def revXlateList(self, model, yang, config, table):
 
     # fetch regex from YANG models
     keyRegEx = model['ext:key-regex-yang-to-configdb']['@value']
+    self.sysLog(msg="revXlateList regex:{}".format(keyRegEx))
 
     # create a dict to map each key under primary key with a dict yang model.
     # This is done to improve performance of mapping from values of TABLEs in
@@ -428,9 +429,8 @@ def revXlateList(self, model, yang, config, table):
     if "_LIST" in model['@name']:
         for entry in yang:
             # create key of config DB table
-            self.logInFile("revXlateList regex:{}".format(keyRegEx))
             pkey, pkeydict = self.createKey(entry, keyRegEx)
-            self.logInFile("revXlateList pkey:{}".format(pkey))
+            self.sysLog(syslog.LOG_DEBUG, "revXlateList pkey:{}".format(pkey))
             config[pkey]= dict()
             # fill rest of the entries
             for key in entry:
@@ -450,12 +450,12 @@ def revXlateContainer(self, model, yang, config, table):
     if isinstance(model['list'], dict):
         modelList = model['list']
         # Pass matching list from Yang Json
-        self.logInFile("revXlateContainer {}".format(modelList['@name']))
+        self.sysLog(msg="revXlateContainer {}".format(modelList['@name']))
         self.revXlateList(modelList, yang[modelList['@name']], config, table)
 
     elif isinstance(model['list'], list):
         for modelList in model['list']:
-            self.logInFile("revXlateContainer {}".format(modelList['@name']))
+            self.sysLog(msg="revXlateContainer {}".format(modelList['@name']))
             self.revXlateList(modelList, yang[modelList['@name']], config, table)
 
     return
@@ -478,7 +478,7 @@ def revXlateYangtoConfigDB(self, yangJ, cDbJson):
             cmap = self.confDbYangMap[table]
             cDbJson[table] = dict()
             #print(key + "--" + subkey)
-            self.logInFile("revXlateYangtoConfigDB {}".format(table))
+            self.sysLog(msg="revXlateYangtoConfigDB {}".format(table))
             self.revXlateContainer(cmap['container'], yangJ[module_top][container], \
                 cDbJson[table], table)
 
@@ -594,7 +594,7 @@ def load_data(self, configdbJson, allowExtraTables=True):
       # xlated result will be in self.xlateJson
       self.xlateConfigDB()
       #print(self.xlateJson)
-      self.logInFile("Try to load Data in the tree")
+      self.sysLog(msg="Try to load Data in the tree")
       self.root = self.ctx.parse_data_mem(dumps(self.xlateJson), \
                     ly.LYD_JSON, ly.LYD_OPT_CONFIG|ly.LYD_OPT_STRICT)
 
