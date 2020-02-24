@@ -12,9 +12,9 @@ import os
 
 # important reuirements parameters
 build_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
-                        '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
-                        '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb',
-                        '../../target/python-wheels/sonic_yang_models-1.0-py3-none-any.whl',]
+                      '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
+                      '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb',
+                      '../../target/debs/stretch/python3-yang_1.0.73_amd64.deb',]
 
 setup_requirements = ['pytest-runner']
 
@@ -29,28 +29,37 @@ class pkgBuild(build_py):
     """Custom Build PLY"""
 
     def run (self):
-        #  install libyang and sonic_yang_models
+        #  install libyang
         for req in build_requirements:
-            if '.deb'in req:
+            if 'target/debs'in req:
                 pkg_install_cmd = "sudo dpkg -i {}".format(req)
                 if (system(pkg_install_cmd)):
                     print("{} installation failed".format(req))
                     exit(1)
                 else:
                     print("{} installed".format(req))
-            elif '.whl' in req:
-                pkg_install_cmd = "pip3 install {}".format(req)
-                if (system(pkg_install_cmd)):
-                    print("{} installation failed".format(req))
-                    exit(1)
-                else:
-                    print("{} installed".format(req))
 
-        # run pytest for libyang python APIs
-        self.pytest_args = []
-        errno = pytest.main(self.pytest_args)
-        if (errno):
-            exit(errno)
+        # json file for YANG model test cases.
+        test_yangJson_file = './tests/yang_model_tests/yangTest.json'
+        # YANG models are in below dir
+        yang_model_dir = './yang-models/'
+        # yang model tester python module
+        yang_test_py = './tests/yang_model_tests/yangModelTesting.py'
+        #  run tests for yang models
+        test_yang_cmd = "python {} -f {} -y {}".format(yang_test_py, test_yangJson_file, yang_model_dir)
+        if (system(test_yang_cmd)):
+            print("YANG Tests failed\n")
+            # below line will be uncommented after libyang python support PR #
+            exit(1)
+        else:
+            print("YANG Tests passed\n")
+
+        # Generate YANG Tree
+        pyang_tree_cmd = "pyang -f tree ./yang-models/*.yang > ./yang-models/sonic_yang_tree"
+        if (system(pyang_tree_cmd)):
+            print("Failed: {}".format(pyang_tree_cmd))
+        else:
+            print("Passed: {}".format(pyang_tree_cmd))
 
         # Continue usual build steps
         build_py.run(self)
@@ -80,11 +89,21 @@ setup(
     license="GNU General Public License v3",
     long_description=readme + '\n\n',
     include_package_data=True,
-    keywords='sonic_yang_mgmt',
-    name='sonic_yang_mgmt',
-    py_modules=['sonic_yang', '_sonic_yang_ext'],
+    keywords='sonic_yang_models',
+    name='sonic_yang_models',
+    py_modules=[],
     packages=find_packages(),
     setup_requires=setup_requirements,
     version='1.0',
+    data_files=[
+        ('yang-models', ['./yang-models/sonic-head.yang',
+                         './yang-models/sonic-acl.yang',
+                         './yang-models/sonic-interface.yang',
+                         './yang-models/sonic-loopback-interface.yang',
+                         './yang-models/sonic-port.yang',
+                         './yang-models/sonic-portchannel.yang',
+                         './yang-models/sonic-vlan.yang',
+                         './yang-models/sonic_yang_tree']),
+    ],
     zip_safe=False,
 )

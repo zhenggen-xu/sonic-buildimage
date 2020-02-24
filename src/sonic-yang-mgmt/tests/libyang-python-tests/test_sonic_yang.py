@@ -21,7 +21,6 @@ log.addHandler(logging.NullHandler())
 
 class Test_SonicYang(object):
     # class vars
-    yang_test_file = "/sonic/src/sonic-yang-mgmt/tests/yang-model-tests/yangTest.json"
 
     @pytest.fixture(autouse=True, scope='class')
     def data(self):
@@ -48,13 +47,13 @@ class Test_SonicYang(object):
         Get the JSON input based on func name
         and return jsonInput
     """
-    def readIjsonInput(self, test):
+    def readIjsonInput(self, yang_test_file, test):
         try:
             # load test specific Dictionary, using Key = func
             # this is to avoid loading very large JSON in memory
             print(" Read JSON Section: " + test)
             jInput = ""
-            with open(self.yang_test_file, 'rb') as f:
+            with open(yang_test_file, 'rb') as f:
                 jInst = ijson_itmes(f, test)
                 for it in jInst:
                     jInput = jInput + json.dumps(it)
@@ -261,10 +260,12 @@ class Test_SonicYang(object):
             assert expected_type == data_type
 
     def test_xlate_rev_xlate(self):
-        # This Test is with Sonic YANG model, so create class from start
-        # read the config
-        yang_dir = "/sonic/src/sonic-yang-mgmt/yang-models/"
-        jIn = self.readIjsonInput('SAMPLE_CONFIG_DB_JSON')
+        # In this test, xlation and revXlation is tested with latest Sonic
+        # YANG model.
+
+        yang_dir = "/sonic/src/sonic-yang-models/yang-models/"
+        yang_test_file = "/sonic/src/sonic-yang-models/tests/yang_model_tests/yangTest.json"
+        jIn = self.readIjsonInput(yang_test_file, 'SAMPLE_CONFIG_DB_JSON')
         # load yang models
         syc = sy.sonic_yang(yang_dir)
 
