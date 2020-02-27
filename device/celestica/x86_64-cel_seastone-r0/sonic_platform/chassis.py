@@ -56,7 +56,7 @@ class Chassis(ChassisBase):
         for index in range(0, NUM_THERMAL):
             thermal = Thermal(index)
             self._thermal_list.append(thermal)
-        for index in range(0, NUM_SFP):
+        for index in range(1, NUM_SFP+1):
             sfp = Sfp(index)
             self._sfp_list.append(sfp)
         for index in range(0, NUM_COMPONENT):
