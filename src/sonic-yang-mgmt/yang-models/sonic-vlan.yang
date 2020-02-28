@@ -75,8 +75,10 @@ module sonic-vlan {
 				}
 
 				leaf ip-prefix {
-					mandatory true;
-					type inet:ip-prefix;
+					type union {
+						type head:sonic-ip4-prefix;
+						type head:sonic-ip6-prefix;
+					}
 				}
 
 				leaf scope {

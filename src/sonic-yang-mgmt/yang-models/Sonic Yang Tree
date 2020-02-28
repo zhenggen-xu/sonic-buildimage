@@ -52,22 +52,37 @@ module: sonic-acl
 module: sonic-interface
   +--rw sonic-interface
      +--rw INTERFACE
-        +--rw INTERFACE_LIST* [interface ip-prefix]
-           +--rw interface    -> /port:sonic-port/PORT/PORT_LIST/port_name
-           +--rw ip-prefix    inet:ip-prefix
+        +--rw INTERFACE_LIST* [port_name]
+        |  +--rw port_name    -> /port:sonic-port/PORT/PORT_LIST/port_name
+        |  +--rw vrf_name?    string
+        +--rw INTERFACE_IPPREFIX_LIST* [port_name ip-prefix]
+           +--rw port_name    -> /port:sonic-port/PORT/PORT_LIST/port_name
+           +--rw ip-prefix    union
            +--rw scope?       enumeration
            +--rw family?      head:ip-family
+module: sonic-loopback-interface
+  +--rw sonic-loopback-interface
+     +--rw LOOPBACK_INTERFACE
+        +--rw LOOPBACK_INTERFACE_LIST* [loopback_interface_name]
+        |  +--rw loopback_interface_name    string
+        |  +--rw vrf_name?                  string
+        +--rw LOOPBACK_INTERFACE_IPPREFIX_LIST* [loopback_interface_name ip-prefix]
+           +--rw loopback_interface_name    string
+           +--rw ip-prefix                  inet:ip-prefix
+           +--rw scope?                     enumeration
+           +--rw family?                    head:ip-family
 module: sonic-port
   +--rw sonic-port
      +--rw PORT
         +--rw PORT_LIST* [port_name]
            +--rw port_name       string
            +--rw alias?          string
-           +--rw lanes?          string
+           +--rw lanes           string
            +--rw description?    string
-           +--rw speed?          uint32
+           +--rw speed           uint32
            +--rw mtu?            uint16
-           +--rw admin_status    head:admin_status
+           +--rw index?          uint16
+           +--rw admin_status?   head:admin_status
            +--rw fec?            string
 module: sonic-portchannel
   +--rw sonic-portchannel
@@ -82,9 +97,12 @@ module: sonic-portchannel
 module: sonic-vlan
   +--rw sonic-vlan
      +--rw VLAN_INTERFACE
-     |  +--rw VLAN_INTERFACE_LIST* [vlan_name ip-prefix]
+     |  +--rw VLAN_INTERFACE_LIST* [vlan_name]
+     |  |  +--rw vlan_name    -> /sonic-vlan/VLAN/VLAN_LIST/vlan_name
+     |  |  +--rw vrf_name?    string
+     |  +--rw VLAN_INTERFACE_IPPREFIX_LIST* [vlan_name ip-prefix]
      |     +--rw vlan_name    -> /sonic-vlan/VLAN/VLAN_LIST/vlan_name
-     |     +--rw ip-prefix    inet:ip-prefix
+     |     +--rw ip-prefix    union
      |     +--rw scope?       enumeration
      |     +--rw family?      head:ip-family
      +--rw VLAN
@@ -94,7 +112,7 @@ module: sonic-vlan
      |     +--rw description?    string
      |     +--rw dhcp_servers*   inet:ip-address
      |     +--rw mtu?            uint16
-     |     +--rw admin_status    head:admin_status
+     |     +--rw admin_status?   head:admin_status
      |     +--rw members*        -> /port:sonic-port/PORT/PORT_LIST/port_name
      +--rw VLAN_MEMBER
         +--rw VLAN_MEMBER_LIST* [vlan_name port]
