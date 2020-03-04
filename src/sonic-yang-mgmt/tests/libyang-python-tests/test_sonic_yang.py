@@ -271,14 +271,9 @@ class Test_SonicYang(object):
         if syc.jIn == syc.revXlateJson:
             print("Xlate and Rev Xlate Passed")
         else:
-            # Right now, interface and vlan_interface will have default diff due to ip_prefix
-            from jsondiff import diff
-            configDiff = diff(syc.jIn, syc.revXlateJson, syntax='symmetric')
-            for key in configDiff.keys():
-                if 'INTERFACE' not in key:
-                    print("Xlate and Rev Xlate failed")
-                    sys.exit(1)
-            print("Xlate and Rev Xlate Passed")
+            print("Xlate and Rev Xlate failed")
+            # make it fail
+            assert False == True
 
         return
 

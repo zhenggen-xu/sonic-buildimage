@@ -77,8 +77,10 @@ module sonic-interface {
 				}
 
 				leaf ip-prefix {
-                    /* TODO: this should be custom, not inet:ip-prefix.*/
-					type inet:ip-prefix;
+					type union {
+						type head:sonic-ip4-prefix;
+						type head:sonic-ip6-prefix;
+					}
 				}
 
 				leaf scope {
