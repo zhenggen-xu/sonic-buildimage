@@ -53,6 +53,13 @@ class pkgBuild(build_py):
         else:
             print("YANG Tests passed\n")
 
+        # Generate YANG Tree
+        pyang_tree_cmd = "pyang -f tree ./yang-models/*.yang > ./yang-models/sonic_yang_tree"
+        if (system(pyang_tree_cmd)):
+            print("Failed: {}".format(pyang_tree_cmd))
+        else:
+            print("Passed: {}".format(pyang_tree_cmd))
+
         # run pytest for libyang python APIs
         self.pytest_args = []
         errno = pytest.main(self.pytest_args)
@@ -99,7 +106,8 @@ setup(
                          './yang-models/sonic-interface.yang',
                          './yang-models/sonic-port.yang',
                          './yang-models/sonic-portchannel.yang',
-                         './yang-models/sonic-vlan.yang']),
+                         './yang-models/sonic-vlan.yang',
+                         './yang-models/sonic_yang_tree']),
     ],
     zip_safe=False,
 )

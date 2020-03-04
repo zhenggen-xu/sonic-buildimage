@@ -58,7 +58,10 @@ module sonic-loopback-interface {
                 }
 
                 leaf ip-prefix {
-                    type inet:ip-prefix;
+                    type union {
+                        type head:sonic-ip4-prefix;
+                        type head:sonic-ip6-prefix;
+                    }
                 }
 
                 leaf scope {
