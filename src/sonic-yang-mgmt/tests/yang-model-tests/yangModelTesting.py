@@ -7,6 +7,7 @@ import sys
 import ijson
 import json
 #import sonic_yang as sy
+from glob import glob
 from os import listdir
 from os.path import isfile, join, splitext
 
@@ -134,27 +135,21 @@ class YangModelTesting:
         load all YANG models before test run
     """
     def loadYangModel(self, yangDir):
+
         try:
-            # get all files
-            yangFiles = [f for f in listdir(yangDir) if isfile(join(yangDir, f))]
-            # get all yang files
-            yangFiles = [f for f in yangFiles if splitext(f)[-1].lower()==".yang"]
-            yangFiles = [f.split('.')[0] for f in yangFiles]
-            # load yang mdoules
+            # create context
             self.ctx = ly.Context(yangDir)
-            log.debug(yangFiles)
-            for f in yangFiles:
-                # load a module
-                log.debug(f)
-                m = self.ctx.get_module(f)
+            # get all files
+            yangFiles = glob(yangDir +"/*.yang")
+            # load yang modules
+            for file in yangFiles:
+                log.debug(file)
+                m = self.ctx.parse_module_path(file, ly.LYS_IN_YANG)
                 if m is not None:
-                    log.error("Could not get module: {}".format(m.name()))
+                    log.info("module: {} is loaded successfully".format(m.name()))
                 else:
-                    m = self.ctx.load_module(f)
-                    if m is not None:
-                        log.info("module: {} is loaded successfully".format(m.name()))
-                    else:
-                        return
+                    log.info("Could not load module: {}".format(file))
+
         except Exception as e:
             printExceptionDetails()
             raise e
@@ -275,7 +270,8 @@ python yangModelTesting.py -h
 
         yTest = YangModelTesting(tests, yangDir, jsonFile)
         if (listTests):
-            log.info(yTest.ExceptionTests.keys())
+            for key in yTest.ExceptionTests.keys():
+                log.info(key)
             sys.exit(0)
 
         ret = yTest.run()
