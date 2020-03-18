@@ -15,6 +15,7 @@ prefix = '/sonic'; debs = os.environ["STRETCH_DEBS_PATH"]
 wheels = os.environ["PYTHON_WHEELS_PATH"]
 wheels_path = '{}/{}'.format(prefix, wheels)
 deps_path = '{}/{}'.format(prefix, debs)
+# dependencies
 libyang = '{}/{}'.format(deps_path, os.environ["LIBYANG"])
 libyangCpp = '{}/{}'.format(deps_path, os.environ["LIBYANG_CPP"])
 libyangPy2 = '{}/{}'.format(deps_path, os.environ["LIBYANG_PY2"])
@@ -39,7 +40,7 @@ class pkgBuild(build_py):
     def run (self):
         #  install libyang and sonic_yang_models
         for req in build_requirements:
-            if '.deb'in req:
+            if '.deb' in req:
                 pkg_install_cmd = "sudo dpkg -i {}".format(req)
                 if (system(pkg_install_cmd)):
                     print("{} installation failed".format(req))
@@ -83,7 +84,8 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description="Package contains YANG models for sonic.",
+    description="Package contains Python Library for YANG for sonic.",
+    options={'bdist_wheel':{'python_tag':'py'}},
     tests_require = test_requirements,
     license="GNU General Public License v3",
     long_description=readme + '\n\n',
