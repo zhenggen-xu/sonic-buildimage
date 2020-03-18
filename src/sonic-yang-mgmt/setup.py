@@ -10,11 +10,19 @@ from sys import exit
 import pytest
 import os
 
+# find path of pkgs from os environment vars
+prefix = '/sonic'; debs = os.environ["STRETCH_DEBS_PATH"]
+wheels = os.environ["PYTHON_WHEELS_PATH"]
+wheels_path = '{}/{}'.format(prefix, wheels)
+deps_path = '{}/{}'.format(prefix, debs)
+libyang = '{}/{}'.format(deps_path, os.environ["LIBYANG"])
+libyangCpp = '{}/{}'.format(deps_path, os.environ["LIBYANG_CPP"])
+libyangPy2 = '{}/{}'.format(deps_path, os.environ["LIBYANG_PY2"])
+libyangPy3 = '{}/{}'.format(deps_path, os.environ["LIBYANG_PY3"])
+sonicYangModels = '{}/{}'.format(wheels_path, os.environ["SONIC_YANG_MODELS_PY3"])
+
 # important reuirements parameters
-build_requirements = ['../../target/debs/stretch/libyang_1.0.73_amd64.deb',
-                        '../../target/debs/stretch/libyang-cpp_1.0.73_amd64.deb',
-                        '../../target/debs/stretch/python2-yang_1.0.73_amd64.deb',
-                        '../../target/python-wheels/sonic_yang_models-1.0-py3-none-any.whl',]
+build_requirements = [libyang, libyangCpp, libyangPy2, libyangPy3, sonicYangModels,]
 
 setup_requirements = ['pytest-runner']
 
