@@ -103,6 +103,7 @@ setup(
     version='1.0',
     data_files=[
         ('yang-models', ['./yang-models/sonic-head.yang',
+                         './yang-models/sonic-extension.yang',
                          './yang-models/sonic-acl.yang',
                          './yang-models/sonic-interface.yang',
                          './yang-models/sonic-loopback-interface.yang',
