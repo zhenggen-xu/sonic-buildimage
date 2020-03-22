@@ -1,4 +1,4 @@
-module sonic-head {
+module test-sonic-head {
 
     namespace "http://sonic-head";
     prefix sonic-head;

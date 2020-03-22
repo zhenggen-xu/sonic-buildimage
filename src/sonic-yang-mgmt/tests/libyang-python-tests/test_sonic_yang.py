@@ -114,6 +114,13 @@ class Test_SonicYang(object):
 	print(yang_files)
         yang_s.load_data_model(yang_dir, yang_files, data_files)
 
+        #validate the data tree from data_merge_file is loaded
+        for node in data['merged_nodes']:
+            xpath = str(node['xpath'])
+            value = str(node['value'])
+            val = yang_s.find_data_node_value(xpath)
+            assert str(val) == str(value)
+
     #test load data file
     def test_load_data_file(self, data, yang_s):
         data_file = str(data['data_file'])
@@ -141,19 +148,19 @@ class Test_SonicYang(object):
         for node in data['new_nodes']:
             xpath = str(node['xpath'])
             value = node['value']
-            status = yang_s.add_node(xpath, str(value))
+            status = yang_s.add_data_node(xpath, str(value))
 
-            node = yang_s.find_data_node(xpath)
-            assert node is not None
+            data_node = yang_s.find_data_node(xpath)
+            assert data_node is not None
 
     #test find node value
-    def test_find_node_value(self, data, yang_s):
+    def test_find_data_node_value(self, data, yang_s):
        for node in data['node_values']:
             xpath = str(node['xpath'])
             value = str(node['value'])
             print(xpath)
             print(value)
-            val = yang_s.find_node_value(xpath)
+            val = yang_s.find_data_node_value(xpath)
             assert str(val) == str(value)
 
     #test delete data node
@@ -161,16 +168,16 @@ class Test_SonicYang(object):
         for node in data['delete_nodes']:
             expected = node['valid']
             xpath = str(node['xpath'])
-            yang_s._delete_node(xpath)
+            yang_s.delete_data_node(xpath)
 
     #test set node's value
     def test_set_datanode_value(self, data, yang_s):
         for node in data['set_nodes']:
             xpath = str(node['xpath'])
             value = node['value']
-            yang_s.set_dnode_value(xpath, value)
+            yang_s.set_data_node_value(xpath, value)
 
-            val = yang_s.find_node_value(xpath)
+            val = yang_s.find_data_node_value(xpath)
             assert str(val) == str(value)
 
     #test list of members
@@ -182,19 +189,19 @@ class Test_SonicYang(object):
             assert list.sort() == members.sort()
 
     #get parent xpath
-    def test_get_parent_xpath(self, yang_s, data):
+    def test_get_parent_data_xpath(self, yang_s, data):
         for node in data['parents']:
             xpath = str(node['xpath'])
             expected_xpath = str(node['parent'])
-            path = yang_s.get_parent_xpath(xpath)
+            path = yang_s.get_parent_data_xpath(xpath)
             assert path == expected_xpath
 
-    #test find_node_schema_xpath
-    def test_find_node_schema_xpath(self, yang_s, data):
+    #test find_data_node_schema_xpath
+    def test_find_data_node_schema_xpath(self, yang_s, data):
         for node in data['schema_nodes']:
             xpath = str(node['xpath'])
             schema_xpath = str(node['value'])
-            path = yang_s.find_node_schema_xpath(xpath)
+            path = yang_s.find_data_node_schema_xpath(xpath)
             assert path == schema_xpath
 
     #test data dependencies

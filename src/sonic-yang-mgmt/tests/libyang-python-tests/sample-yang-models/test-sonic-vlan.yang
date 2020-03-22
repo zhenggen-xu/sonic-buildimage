@@ -1,4 +1,4 @@
-module sonic-vlan {
+module test-sonic-vlan {
 
 	namespace "http://github.com/Azure/sonic-vlan";
 	prefix vlan;
@@ -11,12 +11,12 @@ module sonic-vlan {
 		prefix inet;
 	}
 
-	import sonic-head {
+	import test-sonic-head {
 		prefix head;
 		revision-date 2019-07-01;
 	}
 
-	import sonic-port {
+	import test-sonic-port {
 		prefix port;
 		revision-date 2019-07-01;
 	}

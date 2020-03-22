@@ -128,12 +128,12 @@ class sonic_yang:
     """
     def load_data_file(self, data_file):
        try:
-           node = self.ctx.parse_data_path(data_file, ly.LYD_JSON, ly.LYD_OPT_CONFIG | ly.LYD_OPT_STRICT)
+           data_node = self.ctx.parse_data_path(data_file, ly.LYD_JSON, ly.LYD_OPT_CONFIG | ly.LYD_OPT_STRICT)
        except Exception as e:
            print("Failed to load data file: " + str(data_file))
            self.fail(e)
        else:
-           self.root = node
+           self.root = data_node
 
     """
     get module name from xpath
@@ -169,7 +169,7 @@ class sonic_yang:
 
             self.load_data_file(data_files[0])
 
-            for i in range(2, len(data_files)):
+            for i in range(1, len(data_files)):
                 self.merge_data(data_files[i])
         except Exception as e:
             print("Failed to load data files")
@@ -256,59 +256,59 @@ class sonic_yang:
             self.fail(e)
 
     """
-    find_parent_node():  find the parent node object
+    find_parent_data_node():  find the parent node object
     input:    data_xpath - xpath of the data node
     returns:  parent node
     """
-    def find_parent_node (self, data_xpath):
+    def find_parent_data_node (self, data_xpath):
         if (self.root is None):
             print("data not loaded")
             return None
         try:
-            node = self.find_data_node(data_xpath)
+            data_node = self.find_data_node(data_xpath)
         except Exception as e:
             print("Failed to find data node from xpath: " + str(data_xpath))
             self.fail(e)
         else:
-            if node is not None:
-                return node.parent()
+            if data_node is not None:
+                return data_node.parent()
 
         return None
 
     """
-    get_parent_xpath():  find the parent node xpath
+    get_parent_data_xpath():  find the parent data node's xpath
     input:    data_xpath - xpathof the data node
-    returns:  - xpath of parent node
+    returns:  - xpath of parent data node
               - Exception if error
     """
-    def get_parent_xpath (self, data_xpath):
+    def get_parent_data_xpath (self, data_xpath):
         path=""
         try:
-            node = self.find_parent_node(data_xpath)
+            data_node = self.find_parent_data_node(data_xpath)
         except Exception as e:
             print("Failed to find parent node from xpath: " + str(data_xpath))
             self.fail(e)
         else:
-            if (node is not None):
-                path = node.path()
+            if (data_node is not None):
+                path = data_node.path()
         return path
 
     """
-    new_node(): create a new data node in the data tree
+    new_data_node(): create a new data node in the data tree
     input:
            xpath: xpath of the new node
            value: value of the new node
     returns:  new Data_Node object if success,  Exception if falied
     """
-    def new_node(self, xpath, value):
+    def new_data_node(self, xpath, value):
         val = str(value)
         try:
-            node = self.root.new_path(self.ctx, xpath, val, 0, 0)
+            data_node = self.root.new_path(self.ctx, xpath, val, 0, 0)
         except Exception as e:
             print("Failed to add data node for path: " + str(xpath))
             self.fail(e)
         else:
-            return node
+            return data_node
 
     """
     find_data_node():  find the data node from xpath
@@ -325,9 +325,9 @@ class sonic_yang:
             self.fail(e)
         else:
             if set is not None:
-                for node in set.data():
-                    if (data_xpath == node.path()):
-                        return node
+                for data_node in set.data():
+                    if (data_xpath == data_node.path()):
+                        return data_node
             return None
     """
     find_schema_node(): find the schema node from schema xpath
@@ -339,35 +339,35 @@ class sonic_yang:
     def find_schema_node(self, schema_xpath):
         try:
             schema_set = self.ctx.find_path(schema_xpath)
-            for snode in schema_set.schema():
-                if (schema_xpath == snode.path()):
-                    return snode
+            for schema_node in schema_set.schema():
+                if (schema_xpath == schema_node.path()):
+                    return schema_node
         except Exception as e:
              self.fail(e)
              return None
         else:
-             for snode in schema_set.schema():
-                 if schema_xapth == snode.path():
-                     return snode
+             for schema_node in schema_set.schema():
+                 if schema_xapth == schema_node.path():
+                     return schema_node
              return None
     """
-    find_node_schema_xpath(): find the xpath of the schema node from data xpath
+    find_data_node_schema_xpath(): find the xpath of the schema node from data xpath
       data xpath example:
       "/sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet0']/port_name"
     input:    data_xpath - xpath of the data node
     returns:  - xpath of the schema node if success
               - Exception if error
     """
-    def find_node_schema_xpath(self, data_xpath):
+    def find_data_node_schema_xpath(self, data_xpath):
         path = ""
         try:
             set = self.root.find_path(data_xpath)
         except Exception as e:
             self.fail(e)
         else:
-            for node in set.data():
-                if data_xpath == node.path():
-                    return node.schema().path()
+            for data_node in set.data():
+                if data_xpath == data_node.path():
+                    return data_node.schema().path()
             return path
 
     """
@@ -375,11 +375,11 @@ class sonic_yang:
     input:    xpath and value of the node to be added
     returns:  Exception if failed
     """
-    def add_node(self, xpath, value):
+    def add_data_node(self, data_xpath, value):
         try:
-            node = self.new_node(xpath, value)
+            data_node = self.new_data_node(data_xpath, value)
             #check if the node added to the data tree
-            self.find_data_node(xpath)
+            self.find_data_node(data_xpath)
         except Exception as e:
             print("add_node(): Failed to add data node for xpath: " + str(data_xpath))
             self.fail(e)
@@ -429,20 +429,20 @@ class sonic_yang:
         return False
 
     """
-    find_node_value():  find the value of a node from the schema/data tree
+    find_data_node_value():  find the value of a node from the data tree
     input:    data_xpath of the data node
     returns:  value string of the node
     """
-    def find_node_value(self, data_xpath):
+    def find_data_node_value(self, data_xpath):
         output = ""
         try:
-            node = self.find_data_node(data_xpath)
+            data_node = self.find_data_node(data_xpath)
         except Exception as e:
-            print("find_node_value(): Failed to find data node from xpath: {}".format(data_xpath))
+            print("find_data_node_value(): Failed to find data node from xpath: {}".format(data_xpath))
             self.fail(e)
         else:
-            if (node is not None):
-                subtype = node.subtype()
+            if (data_node is not None):
+                subtype = data_node.subtype()
                 if (subtype is not None):
                     value = subtype.value_str()
                     return value
@@ -453,9 +453,9 @@ class sonic_yang:
     input:    xpath of the data node
     returns:  Exception if failed
     """
-    def set_dnode_value(self, data_xpath, value):
+    def set_data_node_value(self, data_xpath, value):
         try:
-            node = self.root.new_path(self.ctx, data_xpath, str(value), ly.LYD_ANYDATA_STRING, ly.LYD_PATH_OPT_UPDATE)
+            data_node = self.root.new_path(self.ctx, data_xpath, str(value), ly.LYD_ANYDATA_STRING, ly.LYD_PATH_OPT_UPDATE)
         except Exception as e:
             print("set data node value failed for xpath: " + str(data_xpath))
             self.fail(e)
@@ -497,8 +497,8 @@ class sonic_yang:
             self.fail(e)
             return ref_list
 
-        snode = ly.Schema_Node_Leaf(schema_node)
-        backlinks = snode.backlinks()
+        schema_node = ly.Schema_Node_Leaf(schema_node)
+        backlinks = schema_node.backlinks()
         if backlinks.number() > 0:
             for link in backlinks.schema():
                 print("backlink schema: {}".format(link.path()))

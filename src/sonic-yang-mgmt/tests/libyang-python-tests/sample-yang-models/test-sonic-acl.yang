@@ -1,4 +1,4 @@
-module sonic-acl {
+module test-sonic-acl {
 
 	yang-version 1.1;
 
@@ -13,17 +13,17 @@ module sonic-acl {
 		prefix inet;
 	}
 
-	import sonic-head {
+	import test-sonic-head {
 		prefix head;
 		revision-date 2019-07-01;
 	}
 
-	import sonic-port {
+	import test-sonic-port {
 		prefix port;
 		revision-date 2019-07-01;
 	}
 
-	import sonic-portchannel {
+	import test-sonic-portchannel {
 		prefix lag;
 		revision-date 2019-07-01;
 	}
