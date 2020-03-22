@@ -1,4 +1,4 @@
-module sonic-portchannel {
+module test-sonic-portchannel {
 
 	namespace "http://github.com/Azure/sonic-portchannel";
 	prefix lag;
@@ -11,12 +11,12 @@ module sonic-portchannel {
 		prefix inet;
 	}
 
-	import sonic-head {
+	import test-sonic-head {
 		prefix head;
 		revision-date 2019-07-01;
 	}
 
-	import sonic-port {
+	import test-sonic-port {
 		prefix port;
 		revision-date 2019-07-01;
 	}

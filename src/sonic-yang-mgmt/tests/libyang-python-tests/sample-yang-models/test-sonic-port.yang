@@ -1,4 +1,4 @@
-module sonic-port{
+module test-sonic-port{
 
 	namespace "http://github.com/Azure/sonic-port";
 	prefix port;
@@ -11,7 +11,7 @@ module sonic-port{
 		prefix inet;
 	}
 
-	import sonic-head {
+	import test-sonic-head {
 		prefix head;
 		revision-date 2019-07-01;
 	}

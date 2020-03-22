@@ -1,6 +1,6 @@
 {
-	"sonic-vlan:sonic-vlan": {
-		"sonic-vlan:VLAN_INTERFACE": {
+	"test-sonic-vlan:sonic-vlan": {
+		"test-sonic-vlan:VLAN_INTERFACE": {
 			"VLAN_INTERFACE_LIST": [{
                                         "vlanid": 111,
                                         "ip-prefix": "2000:f500:45:6709::1/64",
@@ -28,7 +28,7 @@
 			]
 		},
 
-		"sonic-vlan:VLAN": {
+		"test-sonic-vlan:VLAN": {
 			"VLAN_LIST": [{
 					"vlanid": 200,
 					"description": "server_vlan",
@@ -72,7 +72,7 @@
 			]
 		},
 
-		"sonic-vlan:VLAN_MEMBER": {
+		"test-sonic-vlan:VLAN_MEMBER": {
 			"VLAN_MEMBER_LIST": [{
 					"vlanid": 200,
 					"port": "Ethernet0",
@@ -81,8 +81,8 @@
 			]
 		}
 	},
-        "sonic-port:sonic-port": {
-                "sonic-port:PORT": {
+        "test-sonic-port:sonic-port": {
+                "test-sonic-port:PORT": {
                         "PORT_LIST": [{
                                         "port_name": "Ethernet0",
                                         "alias": "eth0",
