@@ -641,7 +641,7 @@ def delete_node(self, xpath):
             leaf = ly.Schema_Node_Leaf(snode)
             if leaf.is_key():
                 # try to delete parent
-                nodeP = self.find_parent_node(xpath)
+                nodeP = self.find_parent_data_node(xpath)
                 xpathP = nodeP.path()
                 if self._delete_node(xpath=xpathP, node=nodeP) == False:
                     raise('_delete_node failed')
