@@ -522,7 +522,7 @@ class sonic_yang:
             return ref_list
 
         try:
-            value = str(self.find_node_value(data_xpath))
+            value = str(self.find_data_node_value(data_xpath))
 
             schema_node = ly.Schema_Node_Leaf(data_node.schema())
             backlinks = schema_node.backlinks()
