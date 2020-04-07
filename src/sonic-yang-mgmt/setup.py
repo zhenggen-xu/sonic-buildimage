@@ -85,7 +85,6 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     description="Package contains Python Library for YANG for sonic.",
-    options={'bdist_wheel':{'python_tag':'py'}},
     tests_require = test_requirements,
     license="GNU General Public License v3",
     long_description=readme + '\n\n',
