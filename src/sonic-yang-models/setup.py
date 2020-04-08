@@ -5,19 +5,17 @@
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
-from os import system
+from os import system, environ
 from sys import exit
-import pytest
-import os
 
-# find path of pkgs from os environment vars
-prefix = '/sonic'; debs = os.environ["STRETCH_DEBS_PATH"]
+# find path of pkgs from environment vars
+prefix = '/sonic'; debs = environ["STRETCH_DEBS_PATH"]
 deps_path = '{}/{}'.format(prefix, debs)
 # dependencies
-libyang = '{}/{}'.format(deps_path, os.environ["LIBYANG"])
-libyangCpp = '{}/{}'.format(deps_path, os.environ["LIBYANG_CPP"])
-libyangPy2 = '{}/{}'.format(deps_path, os.environ["LIBYANG_PY2"])
-libyangPy3 = '{}/{}'.format(deps_path, os.environ["LIBYANG_PY3"])
+libyang = '{}/{}'.format(deps_path, environ["LIBYANG"])
+libyangCpp = '{}/{}'.format(deps_path, environ["LIBYANG_CPP"])
+libyangPy2 = '{}/{}'.format(deps_path, environ["LIBYANG_PY2"])
+libyangPy3 = '{}/{}'.format(deps_path, environ["LIBYANG_PY3"])
 
 # important reuirements parameters
 build_requirements = [libyang, libyangCpp, libyangPy2, libyangPy3,]
