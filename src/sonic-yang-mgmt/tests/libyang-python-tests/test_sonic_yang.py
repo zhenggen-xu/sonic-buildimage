@@ -167,7 +167,7 @@ class Test_SonicYang(object):
         for node in data['delete_nodes']:
             expected = node['valid']
             xpath = str(node['xpath'])
-            yang_s.delete_data_node(xpath)
+            yang_s._delete_node(xpath)
 
     #test set node's value
     def test_set_datanode_value(self, data, yang_s):

@@ -1,6 +1,6 @@
 {
-	"sonic-vlan:sonic-vlan": {
-		"sonic-vlan:VLAN_INTERFACE": {
+	"test-sonic-vlan:sonic-vlan": {
+		"test-sonic-vlan:VLAN_INTERFACE": {
 			"VLAN_INTERFACE_LIST": [{
 					"vlanid": 111,
 					"ip-prefix": "2000:f500:45:6709::1/64",
@@ -40,7 +40,7 @@
 			]
 		},
 
-		"sonic-vlan:VLAN": {
+		"test-sonic-vlan:VLAN": {
 			"VLAN_LIST": [{
 					"vlanid": 111,
 					"description": "server_vlan",
@@ -78,7 +78,7 @@
 			]
 		},
 
-		"sonic-vlan:VLAN_MEMBER": {
+		"test-sonic-vlan:VLAN_MEMBER": {
 			"VLAN_MEMBER_LIST": [{
 					"vlanid": 111,
 					"port": "Ethernet0",
@@ -117,8 +117,8 @@
 			]
 		}
 	},
-	"sonic-port:sonic-port": {
-		"sonic-port:PORT": {
+	"test-sonic-port:sonic-port": {
+		"test-sonic-port:PORT": {
 			"PORT_LIST": [{
 					"port_name": "Ethernet0",
 					"alias": "eth0",
@@ -203,8 +203,8 @@
 		}
 	},
 
-	"sonic-acl:sonic-acl": {
-		"sonic-acl:ACL_RULE": {
+	"test-sonic-acl:sonic-acl": {
+		"test-sonic-acl:ACL_RULE": {
 			"ACL_RULE_LIST": [{
 					"ACL_TABLE_NAME": "PACL-V4",
 					"RULE_NAME": "Rule_20",
@@ -237,7 +237,7 @@
 			]
 		},
 
-		"sonic-acl:ACL_TABLE": {
+		"test-sonic-acl:ACL_TABLE": {
 			"ACL_TABLE_LIST": [{
 					"ACL_TABLE_NAME": "PACL-V6",
 					"policy_desc": "Filter IPv6",
@@ -256,8 +256,8 @@
 		}
 	},
 
-	"sonic-interface:sonic-interface": {
-		"sonic-interface:INTERFACE": {
+	"test-sonic-interface:sonic-interface": {
+		"test-sonic-interface:INTERFACE": {
 			"INTERFACE_LIST": [{
 					"interface": "Ethernet8",
 					"ip-prefix": "10.1.1.65/26",

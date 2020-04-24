@@ -107,15 +107,15 @@
            "parent":"/test-sonic-port:sonic-port/PORT/PORT_LIST[port_name='Ethernet9']"}
  ],
   "prefix":[
-    {"module_name":"test-sonic-head", "module_prefix":"test-sonic-head"},
-    {"module_name":"test-sonic-port", "module_prefix":"test-sonic-port"},
-    {"module_name":"test-sonic-acl",  "module_prefix":"test-sonic-acl"},
-    {"module_name":"test-sonic-interface", "module_prefix":"test-sonic-intf"},
-    {"module_name":"test-sonic-portchannel", "module_prefix":"test-sonic-lag"},
-    {"module_name":"test-sonic-vlan", "module_prefix":"test-sonic-vlan"}
+    {"module_name":"test-sonic-head", "module_prefix":"sonic-head"},
+    {"module_name":"test-sonic-port", "module_prefix":"port"},
+    {"module_name":"test-sonic-acl",  "module_prefix":"acl"},
+    {"module_name":"test-sonic-interface", "module_prefix":"intf"},
+    {"module_name":"test-sonic-portchannel", "module_prefix":"lag"},
+    {"module_name":"test-sonic-vlan", "module_prefix":"vlan"}
     ],
   "data_type":[
-    {"xpath":"/test-sonic-port:sonic-port/test-sonic-port:PORT/sonic-port:PORT_LIST/test-sonic-port:port_name", "data_type":"LY_TYPE_STRING"},
+    {"xpath":"/test-sonic-port:sonic-port/test-sonic-port:PORT/test-sonic-port:PORT_LIST/test-sonic-port:port_name", "data_type":"LY_TYPE_STRING"},
     {"xpath":"/test-sonic-vlan:sonic-vlan/test-sonic-vlan:VLAN_INTERFACE/test-sonic-vlan:VLAN_INTERFACE_LIST/test-sonic-vlan:vlanid", "data_type":"LY_TYPE_LEAFREF"}
     ],
   "leafref_type":[
