@@ -415,8 +415,8 @@ sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y in
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip install 'netifaces==0.10.7'
 
 # Get package to support Dynamic Port Breakout
-sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip install xmltodict
-sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip install jsondiff
+sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip install xmltodict==0.12.0
+sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip install jsondiff==1.2.0
 
 ## Create /var/run/redis folder for docker-database to mount
 sudo mkdir -p $FILESYSTEM_ROOT/var/run/redis
