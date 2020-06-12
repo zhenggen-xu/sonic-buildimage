@@ -809,44 +809,7 @@
 				],
 				"vlanid": "111",
 				"mtu": "9216",
-				"admin_status": "up",
-				"members": [
-					"Ethernet8",
-					"Ethernet3",
-					"Ethernet0",
-					"Ethernet1",
-					"Ethernet6",
-					"Ethernet4",
-					"Ethernet5",
-					"Ethernet9",
-					"Ethernet2",
-					"Ethernet7",
-					"Ethernet32",
-					"Ethernet30",
-					"Ethernet31",
-					"Ethernet36",
-					"Ethernet34",
-					"Ethernet33",
-					"Ethernet35",
-					"Ethernet29",
-					"Ethernet21",
-					"Ethernet20",
-					"Ethernet23",
-					"Ethernet22",
-					"Ethernet27",
-					"Ethernet26",
-					"Ethernet18",
-					"Ethernet19",
-					"Ethernet14",
-					"Ethernet15",
-					"Ethernet16",
-					"Ethernet17",
-					"Ethernet10",
-					"Ethernet11",
-					"Ethernet12",
-					"Ethernet13",
-					"Ethernet28"
-				]
+				"admin_status": "up"
 			},
 			"Vlan777": {
 				"description": "pvlan",
@@ -855,15 +818,7 @@
 				],
 				"vlanid": "777",
 				"mtu": "9216",
-				"admin_status": "up",
-				"members": [
-					"Ethernet9",
-					"Ethernet2",
-					"Ethernet8",
-					"Ethernet27",
-					"Ethernet14",
-					"Ethernet35"
-				]
+				"admin_status": "up"
 			}
 		},
 		"DEVICE_NEIGHBOR": {
