@@ -215,6 +215,17 @@ class YangModelTesting:
 
     """
         Load Config Data and return Exception as String
+
+        Parameters:
+            jInput (dict): input config to load.
+            verify (dict): contains xpath, key and value. This is used to verify,
+            that node tree at xpath contains correct key and value.
+            Example:
+            'verify': {'xpath': "/sonic-acl:sonic-acl/ACL_TABLE/ACL_TABLE_LIST\
+                        [ACL_TABLE_NAME='NO-NSW-PACL-V4']/stage",
+                        'key': 'sonic-acl:stage',
+                        'value': 'INGRESS'
+            }
     """
     def loadConfigData(self, jInput, verify=None):
         s = ""
