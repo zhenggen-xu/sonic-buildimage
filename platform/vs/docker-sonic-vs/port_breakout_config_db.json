@@ -32,32 +32,6 @@
             "scope": "global"
         }
     },
-    "VLAN_INTERFACE": {
-        "Vlan100": {},
-        "Vlan101": {},
-        "Vlan100|10.0.0.0/31": {
-            "family": "IPv4",
-            "scope": "global"
-        },
-        "Vlan101|10.0.0.2/31": {
-            "family": "IPv4",
-            "scope": "global"
-        }
-    },
-    "VLAN": {
-        "Vlan100": {
-            "admin_status": "up",
-            "description": "VLAN to test DPB/VLAN dependency",
-            "mtu": "9216",
-            "vlanid": "100"
-        },
-        "Vlan101": {
-            "admin_status": "up",
-            "description": "VLAN to test DPB/VLAN dependency",
-            "mtu": "9216",
-            "vlanid": "101"
-        }
-    },
     "VLAN_MEMBER": {
         "Vlan100|Ethernet0": {
             "tagging_mode": "untagged"
