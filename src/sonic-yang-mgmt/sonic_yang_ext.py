@@ -129,6 +129,7 @@ class sonic_yang_ext_mixin:
 
         if len(self.tablesWithOutYang):
             print("Note: Below table(s) have no YANG models:")
+            self.sysLog("Extra Tables in Config {}".format(self.tablesWithOutYang.keys))
             for table in self.tablesWithOutYang.keys():
                 print(unicode(table), end=", ")
             print()
