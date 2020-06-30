@@ -3,7 +3,7 @@ import syslog
 
 from json import dump
 from glob import glob
-from _sonic_yang_ext import sonic_yang_ext_mixin
+from sonic_yang_ext import sonic_yang_ext_mixin
 
 """
 Yang schema and data tree python APIs based on libyang python
@@ -34,6 +34,8 @@ class sonic_yang(sonic_yang_ext_mixin):
         self.xlateJson = dict()
         # reverse translation from yang JSON, == config db json
         self.revXlateJson = dict()
+        # below dict store the input config tables which have no YANG models
+        self.tablesWithOutYang = dict()
 
         try:
             self.ctx = ly.Context(yang_dir)
@@ -368,7 +370,7 @@ class sonic_yang(sonic_yang_ext_mixin):
             return path
 
     """
-    add_node(): add a node to Yang schema or data tree
+    add_data_node(): add a node to Yang schema or data tree
     input:    xpath and value of the node to be added
     returns:  Exception if failed
     """
@@ -378,7 +380,7 @@ class sonic_yang(sonic_yang_ext_mixin):
             #check if the node added to the data tree
             self.find_data_node(data_xpath)
         except Exception as e:
-            print("add_node(): Failed to add data node for xpath: " + str(data_xpath))
+            print("add_data_node(): Failed to add data node for xpath: " + str(data_xpath))
             self.fail(e)
 
     """
