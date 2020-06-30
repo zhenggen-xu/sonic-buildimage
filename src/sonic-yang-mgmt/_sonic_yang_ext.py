@@ -639,7 +639,7 @@ class sonic_yang_ext_mixin:
                 leaf = ly.Schema_Node_Leaf(snode)
                 if leaf.is_key():
                     # try to delete parent
-                    nodeP = self.find_parent_node(xpath)
+                    nodeP = self.find_parent_data_node(xpath)
                     xpathP = nodeP.path()
                     if self._delete_node(xpath=xpathP, node=nodeP) == False:
                         raise Exception('_delete_node failed')
