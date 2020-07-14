@@ -76,7 +76,7 @@ class sonic_yang_ext_mixin:
             # get module name
             moduleName = j['module']['@name']
             # topLevelContainer does not exist in sonic-head and sonic-extension.
-            if "sonic-head" in moduleName or "sonic-extension" in moduleName:
+            if "sonic-types" in moduleName or "sonic-extension" in moduleName:
                 continue;
             # get all top level container
             topLevelContainer = j['module']['container']
