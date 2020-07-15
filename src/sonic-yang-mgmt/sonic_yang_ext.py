@@ -358,10 +358,10 @@ class sonic_yang_ext_mixin:
 
         # Handle container(s) in container
         ccontainer = model.get('container')
-        # If single list exists in container,
+        # If single container exists in container,
         if ccontainer and isinstance(ccontainer, dict) and bool(configC):
             self.xlateContainerInContainer(ccontainer, yang, configC, table)
-        # If multi-list exists in container,
+        # If multi-containers in container,
         elif ccontainer and isinstance(ccontainer, list) and bool(configC):
             for modelContainer in ccontainer:
                 self.xlateContainerInContainer(modelContainer, yang, configC, table)
@@ -533,7 +533,7 @@ class sonic_yang_ext_mixin:
         # IF container has only one inner container
         if isinstance(ccontainer, dict):
             self.revXlateContainerInContainer(ccontainer, yang, config, table)
-        # IF container has only many inner container
+        # IF container has many inner containers
         elif isinstance(ccontainer, list):
             for modelContainer in ccontainer:
                 self.revXlateContainerInContainer(modelContainer, yang, config, table)
