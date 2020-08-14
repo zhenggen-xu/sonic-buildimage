@@ -304,7 +304,7 @@ def main():
 
     if args.var_json != None and args.var_json in data:
         try:
-            if args.key != None:
+            if args.key is not None:
                 print(json.dumps(FormatConverter.to_serialized(data[args.var_json], args.key), indent=4, cls=minigraph_encoder))
             else:
                 print(json.dumps(FormatConverter.to_serialized(data[args.var_json]), indent=4, cls=minigraph_encoder))
