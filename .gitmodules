@@ -22,7 +22,7 @@
 [submodule "quagga"]
 	path = src/sonic-quagga
 	url = https://github.com/Azure/sonic-quagga
-	branch = debian/0.99.24.1
+	branch = 201811
 [submodule "sonic-dbsyncd"]
 	path = src/sonic-dbsyncd
 	url = https://github.com/Azure/sonic-dbsyncd
@@ -67,3 +67,6 @@
 [submodule "src/redis-dump-load"]
 	path = src/redis-dump-load
 	url = https://github.com/p/redis-dump-load.git
+[submodule "src/telemetry/sonic-telemetry"]
+	path = src/telemetry/sonic-telemetry
+	url = https://github.com/Azure/sonic-telemetry.git
