@@ -153,3 +153,4 @@ ccmdma_intr_enable
 phy_enable
 init_all_modules
 dpr_clock_frequency
+port_fec
