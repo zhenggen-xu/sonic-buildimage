@@ -42,14 +42,14 @@ class Chassis(ChassisBase):
         hx_cause = raw_cause.split()[0] if status and len(
             raw_cause.split()) > 0 else 00
         reboot_cause = {
-            "00": self.REBOOT_CAUSE_HARDWARE_OTHER,
+            "00": self.REBOOT_CAUSE_NON_HARDWARE,
             "11": self.REBOOT_CAUSE_POWER_LOSS,
-            "22": self.REBOOT_CAUSE_NON_HARDWARE,
+            "22": self.REBOOT_CAUSE_HARDWARE_OTHER,
             "33": self.REBOOT_CAUSE_HARDWARE_OTHER,
-            "44": self.REBOOT_CAUSE_NON_HARDWARE,
-            "55": self.REBOOT_CAUSE_NON_HARDWARE,
+            "44": self.REBOOT_CAUSE_HARDWARE_OTHER,
+            "55": self.REBOOT_CAUSE_HARDWARE_OTHER,
             "66": self.REBOOT_CAUSE_WATCHDOG,
-            "77": self.REBOOT_CAUSE_NON_HARDWARE
+            "77": self.REBOOT_CAUSE_HARDWARE_OTHER
         }.get(hx_cause, self.REBOOT_CAUSE_HARDWARE_OTHER)
 
         description = {
