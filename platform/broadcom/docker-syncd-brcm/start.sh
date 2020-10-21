@@ -38,6 +38,12 @@ fi
 
 supervisorctl start syncd
 
+# If this platform has a pre_emphasis setting file, load it
+if [[ -r $HWSKU_DIR/pre-emphasis_PAM4_optics.soc ]]; then
+    wait_syncd
+    /usr/bin/bcmcmd -t 60 "rcload $HWSKU_DIR/pre-emphasis_PAM4_optics.soc"
+fi
+
 # If this platform has an initialization file for the Broadcom LED microprocessor, load it
 if [[ -r ${PLATFORM_DIR}/led_proc_init.soc && ! -f /var/warmboot/warm-starting ]]; then
     wait_syncd
