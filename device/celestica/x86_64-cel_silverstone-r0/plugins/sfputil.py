@@ -5,7 +5,9 @@
 
 try:
     import time
+    import subprocess
     from sonic_platform_base.sonic_sfp.sfputilbase import SfpUtilBase
+    from sonic_platform_base.sonic_sfp.sff8024 import type_of_transceiver
     from sonic_platform_base.sonic_sfp.sff8472 import sff8472InterfaceId, sff8472Dom
     from sonic_platform_base.sonic_sfp.sff8436 import sff8436InterfaceId, sff8436Dom
     from sonic_platform_base.sonic_sfp.inf8628 import inf8628InterfaceId
@@ -174,6 +176,90 @@ class QSFPDDDomPaser(qsfp_dd_Dom):
         return sffbase.get_data_pretty(self, self.dom_data)
 
 
+class SfpEvent:
+    ''' Listen to insert/remove sfp events '''
+
+    PATH_INT_SYSFS = "{0}/{port_name}/qsfp_isr_flags"
+    PATH_INTMASK_SYSFS = "{0}/{port_name}/qsfp_isr_mask"
+    PATH_PRS_SYSFS = "{0}/{port_name}/qsfp_modprs"
+    PRESENT_EN = 0x01
+
+    def __init__(self, num_port, port_info_path):
+        self.num_sfp = num_port
+        self.port_info_path = port_info_path
+        self.__initialize_interrupts()
+
+    def __initialize_interrupts(self):
+        # Initial Interrupt MASK for QSFP, SFP
+        sfp_info_obj = {}
+
+        for index in range(self.num_sfp):
+            port_num = index + 1
+            port_name = "QSFP{}".format(port_num)
+
+            sfp_info_obj[index] = {}
+            sfp_info_obj[index]['intmask_sysfs'] = self.PATH_INTMASK_SYSFS.format(
+                self.port_info_path,
+                port_name=port_name)
+
+            sfp_info_obj[index]['int_sysfs'] = self.PATH_INT_SYSFS.format(
+                self.port_info_path,
+                port_name=port_name)
+
+            sfp_info_obj[index]['prs_sysfs'] = self.PATH_PRS_SYSFS.format(
+                self.port_info_path,
+                port_name=port_name)
+
+            self._write_file(
+                sfp_info_obj[index]["intmask_sysfs"], hex(self.PRESENT_EN))
+
+        self.sfp_info_obj = sfp_info_obj
+
+    def _write_file(self, file_path, data):
+        try:
+            with open(file_path, 'w') as fd:
+                fd.write(str(data))
+                return True
+        except Exception as e:
+            print "Error: unable to read file: %s" % str(e)
+        return False
+
+    def _read_txt_file(self, file_path):
+        try:
+            with open(file_path, 'r') as fd:
+                data = fd.read()
+                return data.strip()
+        except IOError as e:
+            print "Error: unable to read file: %s" % str(e)
+        return None
+
+    def _is_port_device_present(self, port_idx):
+        prs_path = self.sfp_info_obj[port_idx]["prs_sysfs"]
+        is_present = 1 - int(self._read_txt_file(prs_path))
+        return is_present
+
+    def _clear_event_flag(self, path):
+        self._write_file(path, hex(0xff))
+        time.sleep(0.1)
+        self._write_file(path, hex(0x0))
+
+    def update_port_event_object(self, interrup_devices, port_dict):
+        for port_idx in interrup_devices:
+            device_id = str(port_idx + 1)
+            port_dict[device_id] = str(self._is_port_device_present(port_idx))
+        return port_dict
+
+    def check_all_port_interrupt_event(self):
+        interrupt_devices = {}
+        for i in range(self.num_sfp):
+            int_sysfs = self.sfp_info_obj[i]["int_sysfs"]
+            interrupt_flags = self._read_txt_file(int_sysfs)
+            if interrupt_flags == '0x01':
+                interrupt_devices[i] = 1
+                self._clear_event_flag(int_sysfs)
+        return interrupt_devices
+
+
 class SfpUtil(SfpUtilBase):
     """Platform-specific SfpUtil class"""
 
@@ -184,9 +270,13 @@ class SfpUtil(SfpUtilBase):
     SFP_PORT_START = 33
     SFP_PORT_END = 34
 
+    NUM_OSFP = 32
+
     EEPROM_OFFSET = 9
     PORT_INFO_PATH = '/sys/class/silverstone_fpga'
     QSFP_DD_DOM_OFFSET = 2304
+
+    POLL_INTERVAL = 1
 
     _port_name = ""
     _port_to_eeprom_mapping = {}
@@ -344,11 +434,72 @@ class SfpUtil(SfpUtilBase):
 
         return True
 
+    def _run_command(self, cmd):
+        status = True
+        result = ""
+        try:
+            p = subprocess.Popen(
+                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            raw_data, err = p.communicate()
+            if err == '':
+                result = raw_data.strip()
+        except Exception as e:
+            print "Error: unable to run command: %s" % str(e)
+            status = False
+        return status, result
+
+    def _bring_up_port_link(self, int_sfp):
+        # Workaround script to bring up port link
+        for port_num in int_sfp:
+
+            if int_sfp[port_num] == '1':
+                i2c_num = int(port_num) + self.EEPROM_OFFSET
+
+                # set eeprom page
+                set_page_cmd = "i2cset -f -y {} 0x50 0x7f 0x13".format(i2c_num)
+                self._run_command(set_page_cmd)
+
+                # add delay
+                time.sleep(1)
+
+                # set loop back
+                set_lb = "i2cset -f -y {} 0x50 0xb7 0xff".format(i2c_num)
+                self._run_command(set_lb)
+
     def get_transceiver_change_event(self, timeout=0):
         """
-        TBD
+        :param timeout in milliseconds. The method is a blocking call. When timeout is 
+         zero, it only returns when there is change event, i.e., transceiver plug-in/out
+         event. When timeout is non-zero, the function can also return when the timer expires.
+         When timer expires, the return status is True and events is empty.
+        :returns: (status, events)
+        :status: Boolean, True if call successful and no system level event/error occurred, 
+         False if call not success or system level event/error occurred.
+        :events: dictionary for physical port index and the SFP status,
+         status='1' represent plug in, '0' represent plug out like {'0': '1', '31':'0'}
+         when it comes to system level event/error, the index will be '-1',
+         and status can be 'system_not_ready', 'system_become_ready', 'system_fail',
+         like {'-1':'system_not_ready'}.
         """
-        raise NotImplementedError
+        sfp_event = SfpEvent(self.NUM_OSFP, self.PORT_INFO_PATH)
+        start_milli_time = int(round(time.time() * 1000))
+        int_sfp = {}
+
+        sleep_time = min(
+            timeout, self.POLL_INTERVAL) if timeout != 0 else self.POLL_INTERVAL
+        while True:
+            chk_sfp = sfp_event.check_all_port_interrupt_event()
+            int_sfp = sfp_event.update_port_event_object(
+                chk_sfp, int_sfp) if chk_sfp else int_sfp
+
+            current_milli_time = int(round(time.time() * 1000))
+            if int_sfp or (timeout != 0 and current_milli_time - start_milli_time > timeout):
+                self._bring_up_port_link(int_sfp)
+                break
+
+            time.sleep(sleep_time)
+
+        return True, int_sfp
 
     def get_qsfp_data(self, eeprom_ifraw):
         sfp_data = {}
@@ -379,7 +530,7 @@ class SfpUtil(SfpUtilBase):
                 sfp_data['interface'] = sfpi_obj.get_data_pretty()
 
                 # check if it is a 100G module
-                if sfp_data['interface']['data']['Identifier'] == 'QSFP28 or later':
+                if sfp_data['interface']['data']['Identifier'] not in [type_of_transceiver['18'], type_of_transceiver['19']]:
                     return self.get_qsfp_data(eeprom_ifraw)
 
             sfpd_obj = QSFPDDDomPaser(
