@@ -17,6 +17,11 @@ except ImportError as e:
     raise ImportError("%s - required module not found" % str(e))
 
 
+PLATFORM_ROOT_PATH = '/usr/share/sonic/device'
+SONIC_CFGGEN_PATH = '/usr/local/bin/sonic-cfggen'
+HWSKU_KEY = 'DEVICE_METADATA.localhost.hwsku'
+PLATFORM_KEY = 'DEVICE_METADATA.localhost.platform'
+
 class QSFPDDDomPaser(qsfp_dd_Dom):
 
     def __init__(self, eeprom_raw_data):
@@ -448,23 +453,45 @@ class SfpUtil(SfpUtilBase):
             status = False
         return status, result
 
-    def _bring_up_port_link(self, int_sfp):
+    def _bring_up_port_link(self, int_sfp, init_script):
         # Workaround script to bring up port link
         for port_num in int_sfp:
 
             if int_sfp[port_num] == '1':
                 i2c_num = int(port_num) + self.EEPROM_OFFSET
 
-                # set eeprom page
-                set_page_cmd = "i2cset -f -y {} 0x50 0x7f 0x13".format(i2c_num)
-                self._run_command(set_page_cmd)
+                # run cmis init script
+                init_cmd = "bash {} {}".format(init_script, i2c_num)
+                self._run_command(init_cmd)
 
-                # add delay
-                time.sleep(1)
+    def _get_platform_and_hwsku(self):
+        try:
+            proc = subprocess.Popen([SONIC_CFGGEN_PATH, '-H', '-v', PLATFORM_KEY],
+                                    stdout=subprocess.PIPE,
+                                    shell=False,
+                                    stderr=subprocess.STDOUT)
+            stdout = proc.communicate()[0]
+            proc.wait()
+            platform = stdout.rstrip('\n')
 
-                # set loop back
-                set_lb = "i2cset -f -y {} 0x50 0xb7 0xff".format(i2c_num)
-                self._run_command(set_lb)
+            proc = subprocess.Popen([SONIC_CFGGEN_PATH, '-d', '-v', HWSKU_KEY],
+                                    stdout=subprocess.PIPE,
+                                    shell=False,
+                                    stderr=subprocess.STDOUT)
+            stdout = proc.communicate()[0]
+            proc.wait()
+            hwsku = stdout.rstrip('\n')
+        except OSError, e:
+            raise OSError("Cannot detect platform")
+
+        return (platform, hwsku)
+
+    def get_path_to_cmis_init_file(self):
+        (platform, hwsku) = self._get_platform_and_hwsku()
+        platform_path = "/".join([PLATFORM_ROOT_PATH, platform])
+        hwsku_path = "/".join([platform_path, hwsku])
+        port_config_file_path = "/".join([hwsku_path, "cmis-init.sh"])
+        return port_config_file_path
 
     def get_transceiver_change_event(self, timeout=0):
         """
@@ -481,6 +508,7 @@ class SfpUtil(SfpUtilBase):
          and status can be 'system_not_ready', 'system_become_ready', 'system_fail',
          like {'-1':'system_not_ready'}.
         """
+        cmis_init_script = self.get_path_to_cmis_init_file()        
         sfp_event = SfpEvent(self.NUM_OSFP, self.PORT_INFO_PATH)
         start_milli_time = int(round(time.time() * 1000))
         int_sfp = {}
@@ -494,7 +522,7 @@ class SfpUtil(SfpUtilBase):
 
             current_milli_time = int(round(time.time() * 1000))
             if int_sfp or (timeout != 0 and current_milli_time - start_milli_time > timeout):
-                self._bring_up_port_link(int_sfp)
+                self._bring_up_port_link(int_sfp, cmis_init_script)
                 break
 
             time.sleep(sleep_time)
