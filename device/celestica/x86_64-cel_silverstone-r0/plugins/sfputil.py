@@ -22,6 +22,7 @@ SONIC_CFGGEN_PATH = '/usr/local/bin/sonic-cfggen'
 HWSKU_KEY = 'DEVICE_METADATA.localhost.hwsku'
 PLATFORM_KEY = 'DEVICE_METADATA.localhost.platform'
 
+
 class QSFPDDDomPaser(qsfp_dd_Dom):
 
     def __init__(self, eeprom_raw_data):
@@ -281,6 +282,7 @@ class SfpUtil(SfpUtilBase):
     PORT_INFO_PATH = '/sys/class/silverstone_fpga'
     QSFP_DD_DOM_OFFSET = 2304
 
+    # polling interval in seconds
     POLL_INTERVAL = 1
 
     _port_name = ""
@@ -453,8 +455,8 @@ class SfpUtil(SfpUtilBase):
             status = False
         return status, result
 
-    def _bring_up_port_link(self, int_sfp, init_script):
-        # Workaround script to bring up port link
+    def _init_cmis_module(self, int_sfp, init_script):
+        # Workaround script for cmis module
         for port_num in int_sfp:
 
             if int_sfp[port_num] == '1':
@@ -490,8 +492,8 @@ class SfpUtil(SfpUtilBase):
         (platform, hwsku) = self._get_platform_and_hwsku()
         platform_path = "/".join([PLATFORM_ROOT_PATH, platform])
         hwsku_path = "/".join([platform_path, hwsku])
-        port_config_file_path = "/".join([hwsku_path, "cmis-init.sh"])
-        return port_config_file_path
+        cmis_init_file_path = "/".join([hwsku_path, "cmis-init.sh"])
+        return cmis_init_file_path
 
     def get_transceiver_change_event(self, timeout=0):
         """
@@ -508,13 +510,14 @@ class SfpUtil(SfpUtilBase):
          and status can be 'system_not_ready', 'system_become_ready', 'system_fail',
          like {'-1':'system_not_ready'}.
         """
-        cmis_init_script = self.get_path_to_cmis_init_file()        
+        cmis_init_script = self.get_path_to_cmis_init_file()
         sfp_event = SfpEvent(self.NUM_OSFP, self.PORT_INFO_PATH)
         start_milli_time = int(round(time.time() * 1000))
+        timeout_in_sec = timeout/1000.0
         int_sfp = {}
 
         sleep_time = min(
-            timeout, self.POLL_INTERVAL) if timeout != 0 else self.POLL_INTERVAL
+            timeout_in_sec, self.POLL_INTERVAL) if timeout_in_sec != 0 else self.POLL_INTERVAL
         while True:
             chk_sfp = sfp_event.check_all_port_interrupt_event()
             int_sfp = sfp_event.update_port_event_object(
@@ -522,7 +525,7 @@ class SfpUtil(SfpUtilBase):
 
             current_milli_time = int(round(time.time() * 1000))
             if int_sfp or (timeout != 0 and current_milli_time - start_milli_time > timeout):
-                self._bring_up_port_link(int_sfp, cmis_init_script)
+                self._init_cmis_module(int_sfp, cmis_init_script)
                 break
 
             time.sleep(sleep_time)
