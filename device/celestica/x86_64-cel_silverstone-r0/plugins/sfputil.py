@@ -241,7 +241,11 @@ class SfpEvent:
 
     def _is_port_device_present(self, port_idx):
         prs_path = self.sfp_info_obj[port_idx]["prs_sysfs"]
-        is_present = 1 - int(self._read_txt_file(prs_path))
+        is_present = 0
+        try:
+            is_present = 1 - int(self._read_txt_file(prs_path))
+        except Exception as e:
+            print "Error: invaid data in device present sysfs: %s" % str(e)
         return is_present
 
     def _clear_event_flag(self, path):
@@ -458,7 +462,7 @@ class SfpUtil(SfpUtilBase):
     def _init_cmis_module(self, int_sfp, init_script):
         # Workaround script for cmis module
         for port_num in int_sfp:
-
+            # Check if it's the module insert event.
             if int_sfp[port_num] == '1':
                 i2c_num = int(port_num) + self.EEPROM_OFFSET
 
