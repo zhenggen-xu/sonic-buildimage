@@ -1,11 +1,9 @@
 #!/bin/bash
 
-
-# Configure Innolight DR4 transceiver module into 4x100G breakout mode
-# so that each 100G ports can be operated independently
+# Configure transceiver module into 1x400G mode
 
 # Usage:
-# ./cmis4_initial.sh $port_i2c_no
+# ./cmis4_init.sh $port_i2c_no
 #
 port=$1
 
