@@ -473,10 +473,17 @@ class SfpUtil(SfpUtilBase):
                 if flag != self.mod_presence[x]:
                     int_sfp[str(x)] = '1' if flag else '0'
                     self.mod_presence[x] = flag
+                    # check if the module is present
+                    if not flag:
+                        continue
                     # QSFPDD initialization sequence with 3 retries
+                    success = False
                     for retry in range(3):
-                        if self._init_cmis_module(x):
+                        success = self._init_cmis_module(x)
+                        if success:
                             break
+                    if not success:
+                        print("PORT {0}: Unable to initialize the xcvr".format(x))
             if len(int_sfp) > 0:
                 break
             time.sleep(1)
