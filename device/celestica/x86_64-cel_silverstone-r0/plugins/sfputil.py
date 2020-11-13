@@ -253,7 +253,9 @@ class SfpUtil(SfpUtilBase):
         self.inf8628 = inf8628InterfaceId()
 
         self.mod_presence = {}
+        self.mod_failure = {}
         for x in range(self.PORT_START, self.PORT_END + 1):
+            self.mod_failure[x] = 0
             self.mod_presence[x] = False
 
         self.hwsku = None
@@ -402,6 +404,8 @@ class SfpUtil(SfpUtilBase):
 
     def _init_cmis_module(self, port_num):
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 64)
+        if buf is None:
+            return False
         if buf[0] not in "18,19":
             return True
         name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
@@ -472,6 +476,7 @@ class SfpUtil(SfpUtilBase):
                 flag = self.get_presence(x)
                 if flag != self.mod_presence[x]:
                     int_sfp[str(x)] = '1' if flag else '0'
+                    self.mod_failure[x] = 0
                     self.mod_presence[x] = flag
                     # check if the module is present
                     if not flag:
@@ -484,6 +489,27 @@ class SfpUtil(SfpUtilBase):
                             break
                     if not success:
                         print("PORT {0}: Unable to initialize the xcvr".format(x))
+                # skip the following logic in case of module absent
+                if not flag:
+                    continue
+                # Monitoring the QSFP-DD module state, and initiate software reset when failure count > 3
+                buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
+                if buf is None:
+                    continue
+                # skip, in case of QSFP28
+                if buf[0] not in "18,19":
+                    continue
+                # skip, in case that CMIS < 3.0
+                if int(buf[1], 16) < 0x30:
+                    continue
+                # advance the failure counter if state != ModuleReady
+                if ((int(buf[3], 16) >> 1) & 0x7) != 3:
+                    self.mod_failure[x] += 1
+                # initiate QSFP-DD software reset if failure counter > 3
+                if self.mod_failure[x] > 3:
+                    self.mod_failure[x] = 0
+                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+            # break if the SFP change event is not empty
             if len(int_sfp) > 0:
                 break
             time.sleep(1)
