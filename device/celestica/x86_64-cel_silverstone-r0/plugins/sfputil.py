@@ -239,14 +239,10 @@ class SfpEvent:
             print "Error: unable to read file: %s" % str(e)
         return None
 
-    def _is_port_device_present(self, port_idx):
+    def _port_present_status(self, port_idx):
         prs_path = self.sfp_info_obj[port_idx]["prs_sysfs"]
-        is_present = 0
-        try:
-            is_present = 1 - int(self._read_txt_file(prs_path))
-        except Exception as e:
-            print "Error: invaid data in device present sysfs: %s" % str(e)
-        return is_present
+        prs_val = int(self._read_txt_file(prs_path))
+        return 1 - prs_val
 
     def _clear_event_flag(self, path):
         self._write_file(path, hex(0xff))
@@ -256,7 +252,7 @@ class SfpEvent:
     def update_port_event_object(self, interrup_devices, port_dict):
         for port_idx in interrup_devices:
             device_id = str(port_idx + 1)
-            port_dict[device_id] = str(self._is_port_device_present(port_idx))
+            port_dict[device_id] = str(self._port_present_status(port_idx))
         return port_dict
 
     def check_all_port_interrupt_event(self):
@@ -445,19 +441,14 @@ class SfpUtil(SfpUtilBase):
 
         return True
 
-    def _run_command(self, cmd):
-        status = True
-        result = ""
-        try:
+    def _run_command(self, cmd, time=1):
+        for i in range(time):
             p = subprocess.Popen(
                 cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            raw_data, err = p.communicate()
-            if err == '':
-                result = raw_data.strip()
-        except Exception as e:
-            print "Error: unable to run command: %s" % str(e)
-            status = False
-        return status, result
+            if p.returncode != 0:
+                continue
+            return p.communicate()[0].strip()
+        return
 
     def _init_cmis_module(self, int_sfp, init_script):
         # Workaround script for cmis module
@@ -468,7 +459,7 @@ class SfpUtil(SfpUtilBase):
 
                 # run cmis init script
                 init_cmd = "bash {} {}".format(init_script, i2c_num)
-                self._run_command(init_cmd)
+                self._run_command(init_cmd, 3)
 
     def _get_platform_and_hwsku(self):
         try:
