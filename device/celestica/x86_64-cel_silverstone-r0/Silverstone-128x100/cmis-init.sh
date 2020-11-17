@@ -13,15 +13,17 @@ port=$1
 # "========================================================================="
 
 # "-------------------------------------------------------------------------"
-# " Set page 00h before start configuration..."
+# " Set page 00h and check module revision before start configuration..."
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 0x7f 0
+rev=$(sudo i2cget -f -y ${port} 0x50 0x1)
+[[ rev -ge 0x40 ]] || exit 0
 
 # "-------------------------------------------------------------------------"
 # "step 1. SW reset module"
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 26 0x08
-sleep 0.2
+sleep 0.1
 
 # "-------------------------------------------------------------------------"
 # "step 2. deinitialize datapath"
@@ -33,7 +35,6 @@ sudo i2cset -f -y $port 0x50 128 0xff
 # "step 3. enable hi-power mode"
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 26 0x00
-sleep 0.2
 
 # "-------------------------------------------------------------------------"
 # "step 4. Datapath configuration"
@@ -57,12 +58,17 @@ sudo i2cset -f -y $port 0x50 0x98 0x2d
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 0x7f 0x10 
 sudo i2cset -f -y $port 0x50 0x8f 0xff  
-sleep 0.2
+sleep 0.1
 
 # "-------------------------------------------------------------------------"
 # "step 4.c. Check configuration errors codes in page 11h byte 202 - 205"
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 0x7f 0x11
+for i in 202 203 204 205
+do
+    ret=$(sudo i2cget -f -y ${port} 0x50 ${i})
+    [[ $ret != 0x11 ]] && exit 1
+done
 
 # "-------------------------------------------------------------------------"
 # "step 5. Datapath activation Write the corresponding values to upper page"
@@ -70,5 +76,17 @@ sudo i2cset -f -y $port 0x50 0x7f 0x11
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 0x7f 0x10
 sudo i2cset -f -y $port 0x50 0x80 0x00
+sleep 4
+
+# "-------------------------------------------------------------------------"
+# "step 6. Check datapath state"
+# "-------------------------------------------------------------------------"
+sudo i2cset -f -y $port 0x50 0x7f 0x11
+for i in 128 129 130 131
+do
+    ret=$(sudo i2cget -f -y ${port} 0x50 ${i})
+    [[ $ret != 0x77 ]] && exit 1
+done
 
 sudo i2cset -f -y $port 0x50 0x7f 0
+exit 0
