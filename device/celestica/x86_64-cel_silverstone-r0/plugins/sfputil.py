@@ -406,23 +406,30 @@ class SfpUtil(SfpUtilBase):
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 64)
         if buf is None:
             return False
+        # Skip, in case of QSFP28
         if buf[0] not in "18,19":
             return True
+        # Skip, in case that CMIS < 3.0
+        if int(buf[1], 16) < 0x30:
+            return True
+        # Always perform a software reset upon module insertion
+        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+
+        # Decode the transceiver ids
         name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
         part = self.inf8628.parse_vendor_pn(buf, 20)['data']['Vendor PN']['value']
-        #print("DS: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
+        #print("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
         # As of now, init sequence is only necessary for 'InnoLight T-DP4CNT-N00'
         if name.upper() != 'INNOLIGHT' or part.upper() != 'T-DP4CNT-N00':
             return True
 
-        #print("DS: Software reset")
-        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+        # Allow 200ms for software reset
         time.sleep(0.2)
-        #print("DS: Deinitialize datapath")
+        # Deinitialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0xff)
-        #print("DS: Hi-Power")
+        # Hi-Power
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x00)
-        #print("DS: Application selection")
+        # Application selection
         if '128x100' in self.hwsku:
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x21)
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x21)
@@ -442,10 +449,10 @@ class SfpUtil(SfpUtilBase):
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, 0x11)
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, 0x11)
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 143, 0xff)
-        #print("DS: Initialize datapath")
+        # Initialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0x00)
         time.sleep(0.5)
-        #print("DS: Validate configuration status")
+        # Validate configuration status
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(128, 0x11), 80)
         for x in range(74, 78):
             if buf[x] != '11':
@@ -585,10 +592,12 @@ class SfpUtil(SfpUtilBase):
                     sfp_data['interface']['data']['Application Advertisement'] = ret
 
                 # decode the running application code
+                sel = 1
                 eeprom_data = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x880, 32)
-                sel = int(eeprom_data[145 - 128], 16) >> 4
-                if sel < 1 or sel >= app:
-                    sel = 1
+                if eeprom_data is not None:
+                    sel = int(eeprom_data[145 - 128], 16) >> 4
+                    if sel < 1 or sel >= app:
+                        sel = 1
                 sfp_data['interface']['data']['Application Selected'] = "{0}".format(sel)
 
             sfpd_obj = QSFPDDDomPaser(
