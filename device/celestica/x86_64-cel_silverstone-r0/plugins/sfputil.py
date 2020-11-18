@@ -500,8 +500,6 @@ class SfpUtil(SfpUtilBase):
                     # check if the module is present
                     if not flag:
                         continue
-                    # Always perform a software reset upon module insertion
-                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
                 # skip the following logic in case of module absent
                 if not flag:
                     continue
@@ -519,8 +517,8 @@ class SfpUtil(SfpUtilBase):
                 # advance the failure counter if state != ModuleReady
                 if ((int(buf[3], 16) >> 1) & 0x7) != 3:
                     self.mod_failure[x] += 1
-                # initiate QSFP-DD software reset if failure counter > 3
-                if self.mod_failure[x] > 3:
+                # initiate QSFP-DD software reset if failure counter > 2
+                if self.mod_failure[x] > 2:
                     self.mod_failure[x] = 0
                     self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
 
