@@ -4,6 +4,7 @@
 # This plugin supports QSFP-DD, QSFP and SFP.
 
 try:
+    import syslog
     import time
     import subprocess
     from sonic_platform_base.sonic_sfp.sfputilbase import SfpUtilBase
@@ -28,6 +29,16 @@ PLATFORM_ROOT_PATH = '/usr/share/sonic/device'
 SONIC_CFGGEN_PATH = '/usr/local/bin/sonic-cfggen'
 HWSKU_KEY = 'DEVICE_METADATA.localhost.hwsku'
 PLATFORM_KEY = 'DEVICE_METADATA.localhost.platform'
+
+SYSLOG_IDENTIFIER = "sfputil.py"
+
+def log_info(msg, also_print_to_console=False):
+    syslog.openlog(SYSLOG_IDENTIFIER)
+    syslog.syslog(syslog.LOG_INFO, msg)
+    syslog.closelog()
+
+    if also_print_to_console:
+        print msg
 
 class QSFPDDDomPaser(qsfp_dd_Dom):
 
@@ -268,7 +279,7 @@ class SfpUtil(SfpUtilBase):
             proc.wait()
             self.hwsku = stdout.rstrip('\n')
         except:
-            print("Cannot detect HwSku")
+            log_info("Cannot detect HwSku")
 
         # Override port_to_eeprom_mapping for class initialization
         eeprom_path = '/sys/bus/i2c/devices/i2c-{0}/{0}-0050/eeprom'
@@ -398,19 +409,18 @@ class SfpUtil(SfpUtilBase):
             f.seek(addr)
             f.write(chr(val))
         except Exception as ex:
-            print("SFP: write failed: {0}".format(ex))
+            log_info("write failed: {0}".format(ex))
         finally:
             f.close()
 
     def _init_cmis_module(self, port_num):
+        log_info("PORT {0}: _init_cmis_module".format(port_num))
+
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 64)
         if buf is None:
             return False
         # Skip, in case of QSFP28
         if buf[0] not in "18,19":
-            return True
-        # Skip, in case that CMIS < 3.0
-        if int(buf[1], 16) < 0x30:
             return True
         # Always perform a software reset upon module insertion
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
@@ -418,15 +428,16 @@ class SfpUtil(SfpUtilBase):
         # Decode the transceiver ids
         name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
         part = self.inf8628.parse_vendor_pn(buf, 20)['data']['Vendor PN']['value']
-        #print("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
+        #log_info("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
         # As of now, init sequence is only necessary for 'InnoLight T-DP4CNT-N00'
         if name.upper() != 'INNOLIGHT' or part.upper() != 'T-DP4CNT-N00':
             return True
 
-        # Allow 200ms for software reset
-        time.sleep(0.2)
+        # Allow 1s for software reset
+        time.sleep(1)
         # Deinitialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0xff)
+        time.sleep(0.5)
         # Hi-Power
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x00)
         # Application selection
@@ -453,11 +464,11 @@ class SfpUtil(SfpUtilBase):
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0x00)
         time.sleep(0.5)
         # Validate configuration status
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(128, 0x11), 80)
-        for x in range(74, 78):
-            if buf[x] != '11':
-                print("ConfigErr: page=0x11, addr={0}, value=0x{1}".format(128 + x, buf[x]))
-                return False
+        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
+        err = "".join(buf)
+        if err != '11111111':
+            log_info("PORT {0}: ConfigErr={1}".format(port_num, err))
+            return False
 
         return True
 
@@ -495,7 +506,7 @@ class SfpUtil(SfpUtilBase):
                         if success:
                             break
                     if not success:
-                        print("PORT {0}: Unable to initialize the xcvr".format(x))
+                        log_info("PORT {0}: Unable to initialize the module".format(x))
                 # skip the following logic in case of module absent
                 if not flag:
                     continue
