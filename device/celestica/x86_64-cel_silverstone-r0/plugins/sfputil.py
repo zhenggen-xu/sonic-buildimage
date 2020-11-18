@@ -497,14 +497,12 @@ class SfpUtil(SfpUtilBase):
                     int_sfp[str(x)] = '1' if flag else '0'
                     self.mod_failure[x] = 0
                     self.mod_presence[x] = flag
-                    # check if the module is present
-                    if not flag:
-                        continue
+
                 # skip the following logic in case of module absent
                 if not flag:
                     continue
 
-                # Monitoring the QSFP-DD module state, and initiate software reset when failure count > 3
+                # Monitoring the QSFP-DD module state, and initiate software reset when failure count > 2
                 buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
                 if buf is None:
                     continue
