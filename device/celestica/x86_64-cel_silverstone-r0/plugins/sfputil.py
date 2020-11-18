@@ -414,16 +414,14 @@ class SfpUtil(SfpUtilBase):
             f.close()
 
     def _init_cmis_module(self, port_num):
-        log_info("PORT {0}: _init_cmis_module".format(port_num))
-
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 64)
         if buf is None:
+            log_info("PORT {0}: unable to read PAGE0".format(port_num))
             return False
         # Skip, in case of QSFP28
         if buf[0] not in "18,19":
+            log_info("PORT {0}: skipped, it's not a QSFPDD".format(port_num))
             return True
-        # Always perform a software reset upon module insertion
-        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
 
         # Decode the transceiver ids
         name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
@@ -433,7 +431,10 @@ class SfpUtil(SfpUtilBase):
         if name.upper() != 'INNOLIGHT' or part.upper() != 'T-DP4CNT-N00':
             return True
 
+        log_info("PORT {0}: _init_cmis_module".format(port_num))
+
         # Allow 1s for software reset
+        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
         time.sleep(1)
         # Deinitialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0xff)
@@ -499,17 +500,12 @@ class SfpUtil(SfpUtilBase):
                     # check if the module is present
                     if not flag:
                         continue
-                    # QSFPDD initialization sequence with 3 retries
-                    success = False
-                    for retry in range(3):
-                        success = self._init_cmis_module(x)
-                        if success:
-                            break
-                    if not success:
-                        log_info("PORT {0}: Unable to initialize the module".format(x))
+                    # Always perform a software reset upon module insertion
+                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
                 # skip the following logic in case of module absent
                 if not flag:
                     continue
+
                 # Monitoring the QSFP-DD module state, and initiate software reset when failure count > 3
                 buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
                 if buf is None:
@@ -527,6 +523,15 @@ class SfpUtil(SfpUtilBase):
                 if self.mod_failure[x] > 3:
                     self.mod_failure[x] = 0
                     self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+
+                # Monitoring the QSFP-DD initialization state, and reinitiate it if necessary
+                buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
+                if buf is None:
+                    continue
+                err = "".join(buf)
+                if err != '11111111':
+                    if not self._init_cmis_module(x):
+                        log_info("PORT {0}: Unable to initialize the module".format(x))
             # break if the SFP change event is not empty
             if len(int_sfp) > 0:
                 break
