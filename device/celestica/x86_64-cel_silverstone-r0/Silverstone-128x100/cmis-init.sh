@@ -16,8 +16,14 @@ port=$1
 # " Set page 00h and check module revision before start configuration..."
 # "-------------------------------------------------------------------------"
 sudo i2cset -f -y $port 0x50 0x7f 0
+
+# Check module type
+mod_type=$(sudo i2cget -f -y ${port} 0x50 0x0)
+[[ $mod_type != 0x18 ]] && exit 0
+
+# Check module revision
 rev=$(sudo i2cget -f -y ${port} 0x50 0x1)
-[[ rev -ge 0x40 ]] || exit 0
+[[ $rev -ge 0x40 ]] || exit 0
 
 # "-------------------------------------------------------------------------"
 # "step 1. SW reset module"
