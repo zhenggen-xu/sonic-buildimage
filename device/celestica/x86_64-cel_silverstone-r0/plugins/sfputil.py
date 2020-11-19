@@ -413,25 +413,12 @@ class SfpUtil(SfpUtilBase):
         finally:
             f.close()
 
-    def _init_cmis_module(self, port_num):
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 64)
-        if buf is None:
-            log_info("PORT {0}: unable to read PAGE0".format(port_num))
-            return False
-        # Skip, in case of QSFP28
-        if buf[0] not in "18,19":
-            log_info("PORT {0}: skipped, it's not a QSFPDD".format(port_num))
+    def _init_cmis_module_custom(self, port_num, xcvr, hwsku):
+        # As of now, init sequence is only necessary for 'INNOLIGHT T-DP4CNT-N00'
+        if xcvr != 'INNOLIGHT T-DP4CNT-N00':
             return True
 
-        # Decode the transceiver ids
-        name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
-        part = self.inf8628.parse_vendor_pn(buf, 20)['data']['Vendor PN']['value']
-        #log_info("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
-        # As of now, init sequence is only necessary for 'InnoLight T-DP4CNT-N00'
-        if name.upper() != 'INNOLIGHT' or part.upper() != 'T-DP4CNT-N00':
-            return True
-
-        log_info("PORT {0}: _init_cmis_module".format(port_num))
+        log_info("PORT {0}: {1}: _init_cmis_module_custom".format(port_num, xcvr))
 
         # Allow 1s for software reset
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
@@ -442,7 +429,7 @@ class SfpUtil(SfpUtilBase):
         # Hi-Power
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x00)
         # Application selection
-        if '128x100' in self.hwsku:
+        if '128x100' in hwsku:
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x21)
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x21)
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, 0x25)
@@ -472,6 +459,25 @@ class SfpUtil(SfpUtilBase):
             return False
 
         return True
+
+    def _init_cmis_module(self, port_num):
+        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 48)
+        if buf is None:
+            log_info("PORT {0}: unable to read PAGE0".format(port_num))
+            return False
+
+        # Skip, in case of QSFP28
+        if buf[0] not in "18,19":
+            log_info("PORT {0}: skipped, it's not a QSFPDD".format(port_num))
+            return True
+
+        # Decode the transceiver ids
+        name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
+        part = self.inf8628.parse_vendor_pn(buf, 20)['data']['Vendor PN']['value']
+        #log_info("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
+        xcvr = name.upper() + " " + part.upper()
+
+        return self._init_cmis_module_custom(port_num, xcvr, self.hwsku)
 
     def get_transceiver_change_event(self, timeout=0):
         """
@@ -594,7 +600,7 @@ class SfpUtil(SfpUtilBase):
                 if tbl is not None:
                     app = 1
                     hid = int(eeprom_ifraw[1 + offset], 16)
-                    while (hid != 0) and (hid != 0xff):
+                    while (app <= 8) and (hid != 0) and (hid != 0xff):
                         (ht, mt) = self.parse_application(tbl, eeprom_ifraw[1 + offset], eeprom_ifraw[2 + offset])
                         ret += "\n            {0}: {1} | {2}".format(app, ht, mt)
                         app += 1
