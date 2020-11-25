@@ -409,16 +409,32 @@ class SfpUtil(SfpUtilBase):
             f.seek(addr)
             f.write(chr(val))
         except Exception as ex:
-            log_info("write failed: {0}".format(ex))
+            log_info("PORT {0}: pg={1}, ofs={2}: write failed: {3}".format(port_num, page, off, ex))
         finally:
             f.close()
 
-    def _init_cmis_module_custom(self, port_num, xcvr, hwsku):
-        # As of now, init sequence is only necessary for 'INNOLIGHT T-DP4CNT-N00'
-        if xcvr != 'INNOLIGHT T-DP4CNT-N00':
-            return True
+    def _get_application_code(self, port_num, host_intf):
+        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 85, 36)
+        if buf is None:
+            return 1
+        tbl = self.parse_media_type(buf, 0)
+        app = 1
+        if tbl is not None:
+            offset = 0
+            hid = int(buf[1 + offset], 16)
+            while (app <= 8) and (hid != 0) and (hid != 0xff):
+                (h, m) = self.parse_application(tbl, buf[1 + offset], buf[2 + offset])
+                if h in host_intf:
+                    log_info("PORT {0}: {1}-{2} looks good".format(port_num, app, h))
+                    break
+                app += 1
+                offset += 4
+                hid = int(buf[1 + offset], 16)
+        return app if app <= 8 else 1
 
-        log_info("PORT {0}: {1}: _init_cmis_module_custom".format(port_num, xcvr))
+    def _init_cmis4_module(self, port_num, xcvr, hwsku):
+
+        log_info("PORT {0}: {1}: _init_cmis4_module".format(port_num, xcvr))
 
         # Allow 1s for software reset
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
@@ -429,15 +445,18 @@ class SfpUtil(SfpUtilBase):
         # Hi-Power
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x00)
         # Application selection
+        app = 1
         if '128x100' in hwsku:
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x21)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x21)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, 0x25)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 148, 0x25)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 149, 0x29)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 150, 0x29)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, 0x2d)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, 0x2d)
+            app = self._get_application_code(port_num, '100GAUI-2 C2M (Annex 135G),100GBASE-CR2 (Clause 136)')
+        if app != 1:
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, (app << 4) | 0x01)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, (app << 4) | 0x01)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, (app << 4) | 0x05)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 148, (app << 4) | 0x05)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 149, (app << 4) | 0x09)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 150, (app << 4) | 0x09)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, (app << 4) | 0x0d)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, (app << 4) | 0x0d)
         else:
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x11)
             self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x11)
@@ -450,7 +469,7 @@ class SfpUtil(SfpUtilBase):
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 143, 0xff)
         # Initialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0x00)
-        time.sleep(0.5)
+        time.sleep(1)
         # Validate configuration status
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
         err = "".join(buf)
@@ -477,7 +496,15 @@ class SfpUtil(SfpUtilBase):
         #log_info("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
         xcvr = name.upper() + " " + part.upper()
 
-        return self._init_cmis_module_custom(port_num, xcvr, self.hwsku)
+        # Dispatch as per the CMIS revision id
+        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
+        rev = 0x30
+        if buf is not None:
+            rev = int(buf[1], 16)
+        if rev >= 0x40:
+            return self._init_cmis4_module(port_num, xcvr, self.hwsku)
+
+        return True
 
     def get_transceiver_change_event(self, timeout=0):
         """
@@ -524,7 +551,14 @@ class SfpUtil(SfpUtilBase):
                 # initiate QSFP-DD software reset if failure counter > 2
                 if self.mod_failure[x] > 2:
                     self.mod_failure[x] = 0
-                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+                    # perform a software reset if it's not a DAC (Passive Copper)
+                    # Note:
+                    # This is actually a hotfix for 'Eoptolink EOLD-134HG-02-M6, QSFPDD CMIS v3',
+                    # its module state could get stuck at ModuleLowPwr upon reinsertion, and a software
+                    # reset is necessary to get it recovered.
+                    buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 85, 1)
+                    if (buf is not None) and (int(buf[0], 16) != 0x03):
+                        self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
 
                 # Monitoring the QSFP-DD initialization state, and reinitiate it if necessary
                 buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)

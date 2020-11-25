@@ -1431,7 +1431,7 @@ static int smbus_access(struct i2c_adapter *adapter, u16 addr,
         goto Done;
     }
 
-#if 1 /* 100 kHz */
+#if 0 /* 100 kHz */
     iowrite8(portid | 0x40, pci_bar + REG_ID0);
 #else
     iowrite8(portid, pci_bar + REG_ID0);
