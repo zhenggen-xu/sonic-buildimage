@@ -265,7 +265,9 @@ class SfpUtil(SfpUtilBase):
 
         self.mod_presence = {}
         self.mod_failure = {}
+        self.mod_inited = {}
         for x in range(self.PORT_START, self.PORT_END + 1):
+            self.mod_inited[x] = False
             self.mod_failure[x] = 0
             self.mod_presence[x] = False
 
@@ -425,7 +427,7 @@ class SfpUtil(SfpUtilBase):
             while (app <= 8) and (hid != 0) and (hid != 0xff):
                 (h, m) = self.parse_application(tbl, buf[1 + offset], buf[2 + offset])
                 if h in host_intf:
-                    log_info("PORT {0}: {1}-{2} looks good".format(port_num, app, h))
+                    log_info("PORT {0}: selecting {1}#{2}".format(port_num, app, h))
                     break
                 app += 1
                 offset += 4
@@ -437,7 +439,7 @@ class SfpUtil(SfpUtilBase):
         log_info("PORT {0}: {1}: _init_cmis4_module".format(port_num, xcvr))
 
         # Allow 1s for software reset
-        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+        self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x58)
         time.sleep(1)
         # Deinitialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0xff)
@@ -469,10 +471,16 @@ class SfpUtil(SfpUtilBase):
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 143, 0xff)
         # Initialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0x00)
-        time.sleep(1)
+
         # Validate configuration status
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
-        err = "".join(buf)
+        err = '00000000'
+        for t in range(10):
+            time.sleep(1)
+            buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
+            err = "".join(buf)
+            if err == '11111111':
+                log_info("PORT {0}: it took {1} secs for config ready".format(port_num, t + 1))
+                break
         if err != '11111111':
             log_info("PORT {0}: ConfigErr={1}".format(port_num, err))
             return False
@@ -528,6 +536,7 @@ class SfpUtil(SfpUtilBase):
                 flag = self.get_presence(x)
                 if flag != self.mod_presence[x]:
                     int_sfp[str(x)] = '1' if flag else '0'
+                    self.mod_inited[x] = False
                     self.mod_failure[x] = 0
                     self.mod_presence[x] = flag
 
@@ -535,32 +544,41 @@ class SfpUtil(SfpUtilBase):
                 if not flag:
                     continue
 
-                # Monitoring the QSFP-DD module state, and initiate software reset when failure count > 2
+                # monitor the QSFP-DD module state, and initiate software reset when failure count > 5
                 buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
                 if buf is None:
+                    log_info("PORT {0}: unable to get module state".format(x))
                     continue
                 # skip, in case of QSFP28
                 if buf[0] not in "18,19":
                     continue
-                # skip, in case that CMIS < 3.0
+                # skip, in case that CMIS < v3.0
                 if int(buf[1], 16) < 0x30:
                     continue
+                elif int(buf[1], 16) < 0x40:
+                    # As of now, the init sequence does not seem to be necessary for CMIS3
+                    self.mod_inited[x] = True
                 # advance the failure counter if state != ModuleReady
                 if ((int(buf[3], 16) >> 1) & 0x7) != 3:
-                    self.mod_failure[x] += 1
-                # initiate QSFP-DD software reset if failure counter > 2
-                if self.mod_failure[x] > 2:
+                    # fetch the module media type
+                    buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 85, 1)
+                    if buf is None:
+                        log_info("PORT {0}: unable to get module media type".format(x))
+                    # perform a software reset only if it's not a DAC (Passive Copper)
+                    elif int(buf[0], 16) != 0x03:
+                        self.mod_failure[x] += 1
+                # initiate QSFP-DD software reset if failure count > 5
+                if self.mod_failure[x] > 5:
                     self.mod_failure[x] = 0
-                    # perform a software reset if it's not a DAC (Passive Copper)
-                    # Note:
                     # This is actually a hotfix for 'Eoptolink EOLD-134HG-02-M6, QSFPDD CMIS v3',
                     # its module state could get stuck at ModuleLowPwr upon reinsertion, and a software
                     # reset is necessary to get it recovered.
-                    buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 85, 1)
-                    if (buf is not None) and (int(buf[0], 16) != 0x03):
-                        self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+                    log_info("PORT {0}: issuing a software reset".format(x))
+                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
 
-                # Monitoring the QSFP-DD initialization state, and reinitiate it if necessary
+                # monitor the QSFP-DD initialization state, and reinitiate it if necessary
+                if self.mod_inited[x]:
+                    continue
                 buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
                 if buf is None:
                     continue
@@ -568,9 +586,13 @@ class SfpUtil(SfpUtilBase):
                 if err != '11111111':
                     if not self._init_cmis_module(x):
                         log_info("PORT {0}: Unable to initialize the module".format(x))
+                    else:
+                        self.mod_inited[x] = True
+
             # break if the SFP change event is not empty
             if len(int_sfp) > 0:
                 break
+
             time.sleep(1)
         return True, int_sfp
 
