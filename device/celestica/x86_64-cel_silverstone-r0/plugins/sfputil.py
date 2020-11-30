@@ -7,6 +7,7 @@ try:
     import syslog
     import time
     import subprocess
+    from collections import OrderedDict
     from sonic_platform_base.sonic_sfp.sfputilbase import SfpUtilBase
     from sonic_platform_base.sonic_sfp.sff8024 import type_of_transceiver
     from sonic_platform_base.sonic_sfp.sff8024 import type_of_media_interface
@@ -415,24 +416,40 @@ class SfpUtil(SfpUtilBase):
         finally:
             f.close()
 
+    def _get_application_advertisements(self, eeprom_ifraw=None, offset=85):
+        adv = OrderedDict()
+        if eeprom_ifraw is None:
+            return adv
+
+        tbl = self.parse_media_type(eeprom_ifraw, offset)
+        if tbl is None:
+            return adv
+
+        app = 1
+        hid = int(eeprom_ifraw[1 + offset], 16)
+        while (app <= 8) and (hid != 0) and (hid != 0xff):
+            (ht, mt) = self.parse_application(tbl, eeprom_ifraw[1 + offset], eeprom_ifraw[2 + offset])
+            adv[app] = "{0} | {1}".format(ht, mt)
+            app += 1
+            offset += 4
+            hid = int(eeprom_ifraw[1 + offset], 16)
+
+        return adv
+
     def _get_application_code(self, port_num, host_intf):
         buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 85, 36)
         if buf is None:
             return 1
-        tbl = self.parse_media_type(buf, 0)
+
         app = 1
-        if tbl is not None:
-            offset = 0
-            hid = int(buf[1 + offset], 16)
-            while (app <= 8) and (hid != 0) and (hid != 0xff):
-                (h, m) = self.parse_application(tbl, buf[1 + offset], buf[2 + offset])
-                if h in host_intf:
-                    log_info("PORT {0}: selecting {1}#{2}".format(port_num, app, h))
-                    break
-                app += 1
-                offset += 4
-                hid = int(buf[1 + offset], 16)
-        return app if app <= 8 else 1
+        dict = self._get_application_advertisements(buf, 0)
+        for k in dict:
+            h = dict[k].split('|')[0].strip()
+            if h in host_intf:
+                app = k
+                log_info("PORT {0}: selecting {1}#{2}".format(port_num, app, h))
+                break
+        return app
 
     def _init_cmis4_module(self, port_num, xcvr, hwsku):
 
@@ -650,27 +667,19 @@ class SfpUtil(SfpUtilBase):
                     return self.get_qsfp_data(eeprom_ifraw)
 
                 # decode application advertisement
-                offset = 85
-                tbl = self.parse_media_type(eeprom_ifraw, offset)
-                ret = ""
-                if tbl is not None:
-                    app = 1
-                    hid = int(eeprom_ifraw[1 + offset], 16)
-                    while (app <= 8) and (hid != 0) and (hid != 0xff):
-                        (ht, mt) = self.parse_application(tbl, eeprom_ifraw[1 + offset], eeprom_ifraw[2 + offset])
-                        ret += "\n            {0}: {1} | {2}".format(app, ht, mt)
-                        app += 1
-                        offset += 4
-                        hid = int(eeprom_ifraw[1 + offset], 16)
-                if len(ret) > 0:
-                    sfp_data['interface']['data']['Application Advertisement'] = ret
+                apps = ""
+                dict = self._get_application_advertisements(eeprom_ifraw, 85)
+                for a in dict:
+                    apps += "\n                {0}: {1}".format(a, dict[a])
+                if len(apps) > 0:
+                    sfp_data['interface']['data']['Application Advertisement'] = apps
 
                 # decode the running application code
                 sel = 1
                 eeprom_data = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x880, 32)
                 if eeprom_data is not None:
                     sel = int(eeprom_data[145 - 128], 16) >> 4
-                    if sel < 1 or sel >= app:
+                    if sel < 1 or sel > len(dict):
                         sel = 1
                 sfp_data['interface']['data']['Application Selected'] = "{0}".format(sel)
 
