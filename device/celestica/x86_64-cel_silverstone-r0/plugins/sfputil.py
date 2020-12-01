@@ -570,13 +570,14 @@ class SfpUtil(SfpUtilBase):
                 if buf[0] not in "18,19":
                     continue
                 # skip, in case that CMIS < v3.0
-                if int(buf[1], 16) < 0x30:
+                cmis = int(buf[1], 16)
+                if cmis < 0x30:
                     continue
-                elif int(buf[1], 16) < 0x40:
-                    # As of now, the init sequence does not seem to be necessary for CMIS3
+                # skip the init sequence for CMIS3
+                if cmis < 0x40:
                     self.mod_inited[x] = True
-                # advance the failure counter if state != ModuleReady
-                if ((int(buf[3], 16) >> 1) & 0x7) != 3:
+                # advance the failure counter if state == ModuleLowPwr and CMIS < v4.0
+                if (cmis < 0x40) and (((int(buf[3], 16) >> 1) & 0x7) == 1):
                     # fetch the module media type
                     buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 85, 1)
                     if buf is None:
@@ -584,6 +585,8 @@ class SfpUtil(SfpUtilBase):
                     # perform a software reset only if it's not a DAC (Passive Copper)
                     elif int(buf[0], 16) != 0x03:
                         self.mod_failure[x] += 1
+                else:
+                    self.mod_failure[x] = 0
                 # initiate QSFP-DD software reset if failure count > 5
                 if self.mod_failure[x] > 5:
                     self.mod_failure[x] = 0
@@ -592,6 +595,7 @@ class SfpUtil(SfpUtilBase):
                     # reset is necessary to get it recovered.
                     log_info("PORT {0}: issuing a software reset".format(x))
                     self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+                    time.sleep(1)
 
                 # monitor the QSFP-DD initialization state, and reinitiate it if necessary
                 if self.mod_inited[x]:
