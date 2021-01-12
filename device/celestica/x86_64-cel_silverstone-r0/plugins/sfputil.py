@@ -7,10 +7,6 @@ try:
     import syslog
     import time
     import subprocess
-<<<<<<< HEAD
-    from sonic_platform_base.sonic_sfp.sfputilbase import SfpUtilBase
-    from sonic_platform_base.sonic_sfp.sff8024 import type_of_transceiver
-=======
     from collections import OrderedDict
     from sonic_platform_base.sonic_sfp.sfputilbase import SfpUtilBase
     from sonic_platform_base.sonic_sfp.sff8024 import type_of_transceiver
@@ -21,7 +17,6 @@ try:
     from sonic_platform_base.sonic_sfp.sff8024 import passive_copper_media_interface
     from sonic_platform_base.sonic_sfp.sff8024 import active_cable_media_interface
     from sonic_platform_base.sonic_sfp.sff8024 import base_t_media_interface
->>>>>>> e4e7956e56be837e8d1bffd3275569c872d5a8df
     from sonic_platform_base.sonic_sfp.sff8472 import sff8472InterfaceId, sff8472Dom
     from sonic_platform_base.sonic_sfp.sff8436 import sff8436InterfaceId, sff8436Dom
     from sonic_platform_base.sonic_sfp.inf8628 import inf8628InterfaceId
@@ -36,9 +31,8 @@ SONIC_CFGGEN_PATH = '/usr/local/bin/sonic-cfggen'
 HWSKU_KEY = 'DEVICE_METADATA.localhost.hwsku'
 PLATFORM_KEY = 'DEVICE_METADATA.localhost.platform'
 
-<<<<<<< HEAD
-=======
 SYSLOG_IDENTIFIER = "sfputil.py"
+
 
 def log_info(msg, also_print_to_console=False):
     syslog.openlog(SYSLOG_IDENTIFIER)
@@ -47,7 +41,7 @@ def log_info(msg, also_print_to_console=False):
 
     if also_print_to_console:
         print msg
->>>>>>> e4e7956e56be837e8d1bffd3275569c872d5a8df
+
 
 class QSFPDDDomPaser(qsfp_dd_Dom):
 
@@ -207,94 +201,7 @@ class QSFPDDDomPaser(qsfp_dd_Dom):
     def get_data_pretty(self):
         return sffbase.get_data_pretty(self, self.dom_data)
 
-<<<<<<< HEAD
 
-class SfpEvent:
-    ''' Listen to insert/remove sfp events '''
-
-    PATH_INT_SYSFS = "{0}/{port_name}/qsfp_isr_flags"
-    PATH_INTMASK_SYSFS = "{0}/{port_name}/qsfp_isr_mask"
-    PATH_PRS_SYSFS = "{0}/{port_name}/qsfp_modprs"
-    PRESENT_EN = 0x01
-
-    def __init__(self, num_port, port_info_path):
-        self.num_sfp = num_port
-        self.port_info_path = port_info_path
-        self.__initialize_interrupts()
-
-    def __initialize_interrupts(self):
-        # Initial Interrupt MASK for QSFP, SFP
-        sfp_info_obj = {}
-
-        for index in range(self.num_sfp):
-            port_num = index + 1
-            port_name = "QSFP{}".format(port_num)
-
-            sfp_info_obj[index] = {}
-            sfp_info_obj[index]['intmask_sysfs'] = self.PATH_INTMASK_SYSFS.format(
-                self.port_info_path,
-                port_name=port_name)
-
-            sfp_info_obj[index]['int_sysfs'] = self.PATH_INT_SYSFS.format(
-                self.port_info_path,
-                port_name=port_name)
-
-            sfp_info_obj[index]['prs_sysfs'] = self.PATH_PRS_SYSFS.format(
-                self.port_info_path,
-                port_name=port_name)
-
-            self._write_file(
-                sfp_info_obj[index]["intmask_sysfs"], hex(self.PRESENT_EN))
-
-        self.sfp_info_obj = sfp_info_obj
-
-    def _write_file(self, file_path, data):
-        try:
-            with open(file_path, 'w') as fd:
-                fd.write(str(data))
-                return True
-        except Exception as e:
-            print "Error: unable to read file: %s" % str(e)
-        return False
-
-    def _read_txt_file(self, file_path):
-        try:
-            with open(file_path, 'r') as fd:
-                data = fd.read()
-                return data.strip()
-        except IOError as e:
-            print "Error: unable to read file: %s" % str(e)
-        return None
-
-    def _port_present_status(self, port_idx):
-        prs_path = self.sfp_info_obj[port_idx]["prs_sysfs"]
-        prs_val = int(self._read_txt_file(prs_path))
-        return 1 - prs_val
-
-    def _clear_event_flag(self, path):
-        self._write_file(path, hex(0xff))
-        time.sleep(0.1)
-        self._write_file(path, hex(0x0))
-
-    def update_port_event_object(self, interrup_devices, port_dict):
-        for port_idx in interrup_devices:
-            device_id = str(port_idx + 1)
-            port_dict[device_id] = str(self._port_present_status(port_idx))
-        return port_dict
-
-    def check_all_port_interrupt_event(self):
-        interrupt_devices = {}
-        for i in range(self.num_sfp):
-            int_sysfs = self.sfp_info_obj[i]["int_sysfs"]
-            interrupt_flags = self._read_txt_file(int_sysfs)
-            if interrupt_flags == '0x01':
-                interrupt_devices[i] = 1
-                self._clear_event_flag(int_sysfs)
-        return interrupt_devices
-
-
-=======
->>>>>>> e4e7956e56be837e8d1bffd3275569c872d5a8df
 class SfpUtil(SfpUtilBase):
     """Platform-specific SfpUtil class"""
 
@@ -492,57 +399,7 @@ class SfpUtil(SfpUtilBase):
 
         return True
 
-<<<<<<< HEAD
-    def _run_command(self, cmd, time=1):
-        for i in range(time):
-            p = subprocess.Popen(
-                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if p.returncode != 0:
-                continue
-            return p.communicate()[0].strip()
-        return
-
-    def _init_cmis_module(self, int_sfp, init_script):
-        # Workaround script for cmis module
-        for port_num in int_sfp:
-            # Check if it's the module insert event.
-            if int_sfp[port_num] == '1':
-                i2c_num = int(port_num) + self.EEPROM_OFFSET
-
-                # run cmis init script
-                init_cmd = "bash {} {}".format(init_script, i2c_num)
-                self._run_command(init_cmd, 3)
-
-    def _get_platform_and_hwsku(self):
-        try:
-            proc = subprocess.Popen([SONIC_CFGGEN_PATH, '-H', '-v', PLATFORM_KEY],
-                                    stdout=subprocess.PIPE,
-                                    shell=False,
-                                    stderr=subprocess.STDOUT)
-            stdout = proc.communicate()[0]
-            proc.wait()
-            platform = stdout.rstrip('\n')
-
-            proc = subprocess.Popen([SONIC_CFGGEN_PATH, '-d', '-v', HWSKU_KEY],
-                                    stdout=subprocess.PIPE,
-                                    shell=False,
-                                    stderr=subprocess.STDOUT)
-            stdout = proc.communicate()[0]
-            proc.wait()
-            hwsku = stdout.rstrip('\n')
-        except OSError, e:
-            raise OSError("Cannot detect platform")
-
-        return (platform, hwsku)
-
-    def get_path_to_cmis_init_file(self):
-        (platform, hwsku) = self._get_platform_and_hwsku()
-        platform_path = "/".join([PLATFORM_ROOT_PATH, platform])
-        hwsku_path = "/".join([platform_path, hwsku])
-        cmis_init_file_path = "/".join([hwsku_path, "cmis-init.sh"])
-        return cmis_init_file_path
-=======
-    def _page_to_flat(self, addr, page = -1):
+    def _page_to_flat(self, addr, page=-1):
         flat = 0
         if addr < 128:
             flat = addr
@@ -558,7 +415,8 @@ class SfpUtil(SfpUtilBase):
             f.seek(addr)
             f.write(chr(val))
         except Exception as ex:
-            log_info("PORT {0}: pg={1}, ofs={2}: write failed: {3}".format(port_num, page, off, ex))
+            log_info("PORT {0}: pg={1}, ofs={2}: write failed: {3}".format(
+                port_num, page, off, ex))
         finally:
             f.close()
 
@@ -574,7 +432,8 @@ class SfpUtil(SfpUtilBase):
         app = 1
         hid = int(eeprom_ifraw[1 + offset], 16)
         while (app <= 8) and (hid != 0) and (hid != 0xff):
-            (ht, mt) = self.parse_application(tbl, eeprom_ifraw[1 + offset], eeprom_ifraw[2 + offset])
+            (ht, mt) = self.parse_application(
+                tbl, eeprom_ifraw[1 + offset], eeprom_ifraw[2 + offset])
             adv[app] = "{0} | {1}".format(ht, mt)
             app += 1
             offset += 4
@@ -583,7 +442,8 @@ class SfpUtil(SfpUtilBase):
         return adv
 
     def _get_application_code(self, port_num, host_intf):
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 85, 36)
+        buf = self._read_eeprom_devid(
+            port_num, self.IDENTITY_EEPROM_ADDR, 85, 36)
         if buf is None:
             return 1
 
@@ -593,7 +453,8 @@ class SfpUtil(SfpUtilBase):
             h = dict[k].split('|')[0].strip()
             if h in host_intf:
                 app = k
-                log_info("PORT {0}: selecting {1}#{2}".format(port_num, app, h))
+                log_info("PORT {0}: selecting {1}#{2}".format(
+                    port_num, app, h))
                 break
         return app
 
@@ -612,25 +473,42 @@ class SfpUtil(SfpUtilBase):
         # Application selection
         app = 1
         if '128x100' in hwsku:
-            app = self._get_application_code(port_num, '100GAUI-2 C2M (Annex 135G),100GBASE-CR2 (Clause 136)')
+            app = self._get_application_code(
+                port_num, '100GAUI-2 C2M (Annex 135G),100GBASE-CR2 (Clause 136)')
         if app != 1:
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, (app << 4) | 0x01)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, (app << 4) | 0x01)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, (app << 4) | 0x05)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 148, (app << 4) | 0x05)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 149, (app << 4) | 0x09)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 150, (app << 4) | 0x09)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, (app << 4) | 0x0d)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, (app << 4) | 0x0d)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 145, (app << 4) | 0x01)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 146, (app << 4) | 0x01)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 147, (app << 4) | 0x05)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 148, (app << 4) | 0x05)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 149, (app << 4) | 0x09)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 150, (app << 4) | 0x09)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 151, (app << 4) | 0x0d)
+            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR,
+                             0x10, 152, (app << 4) | 0x0d)
         else:
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 148, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 149, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 150, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, 0x11)
-            self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 145, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 146, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 147, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 148, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 149, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 150, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 151, 0x11)
+            self._write_byte(
+                port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 152, 0x11)
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 143, 0xff)
         # Initialize datapath
         self._write_byte(port_num, self.IDENTITY_EEPROM_ADDR, 0x10, 128, 0x00)
@@ -639,10 +517,12 @@ class SfpUtil(SfpUtilBase):
         err = '00000000'
         for t in range(10):
             time.sleep(1)
-            buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
+            buf = self._read_eeprom_devid(
+                port_num, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
             err = "".join(buf)
             if err == '11111111':
-                log_info("PORT {0}: it took {1} secs for config ready".format(port_num, t + 1))
+                log_info("PORT {0}: it took {1} secs for config ready".format(
+                    port_num, t + 1))
                 break
         if err != '11111111':
             log_info("PORT {0}: ConfigErr={1}".format(port_num, err))
@@ -651,7 +531,8 @@ class SfpUtil(SfpUtilBase):
         return True
 
     def _init_cmis_module(self, port_num):
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 48)
+        buf = self._read_eeprom_devid(
+            port_num, self.IDENTITY_EEPROM_ADDR, 0x80, 48)
         if buf is None:
             log_info("PORT {0}: unable to read PAGE0".format(port_num))
             return False
@@ -662,13 +543,16 @@ class SfpUtil(SfpUtilBase):
             return True
 
         # Decode the transceiver ids
-        name = self.inf8628.parse_vendor_name(buf, 1)['data']['Vendor Name']['value']
-        part = self.inf8628.parse_vendor_pn(buf, 20)['data']['Vendor PN']['value']
+        name = self.inf8628.parse_vendor_name(
+            buf, 1)['data']['Vendor Name']['value']
+        part = self.inf8628.parse_vendor_pn(
+            buf, 20)['data']['Vendor PN']['value']
         #log_info("_init_cmis_module: p={0}, id='{1}', name='{2}', part='{3}'".format(port_num, buf[0], name, part))
         xcvr = name.upper() + " " + part.upper()
 
         # Dispatch as per the CMIS revision id
-        buf = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
+        buf = self._read_eeprom_devid(
+            port_num, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
         rev = 0x30
         if buf is not None:
             rev = int(buf[1], 16)
@@ -676,7 +560,6 @@ class SfpUtil(SfpUtilBase):
             return self._init_cmis4_module(port_num, xcvr, self.hwsku)
 
         return True
->>>>>>> e4e7956e56be837e8d1bffd3275569c872d5a8df
 
     def get_transceiver_change_event(self, timeout=0):
         """
@@ -693,28 +576,6 @@ class SfpUtil(SfpUtilBase):
          and status can be 'system_not_ready', 'system_become_ready', 'system_fail',
          like {'-1':'system_not_ready'}.
         """
-<<<<<<< HEAD
-        cmis_init_script = self.get_path_to_cmis_init_file()
-        sfp_event = SfpEvent(self.NUM_OSFP, self.PORT_INFO_PATH)
-        start_milli_time = int(round(time.time() * 1000))
-        timeout_in_sec = timeout/1000.0
-        int_sfp = {}
-
-        sleep_time = min(
-            timeout_in_sec, self.POLL_INTERVAL) if timeout_in_sec != 0 else self.POLL_INTERVAL
-        while True:
-            chk_sfp = sfp_event.check_all_port_interrupt_event()
-            int_sfp = sfp_event.update_port_event_object(
-                chk_sfp, int_sfp) if chk_sfp else int_sfp
-
-            current_milli_time = int(round(time.time() * 1000))
-            if int_sfp or (timeout != 0 and current_milli_time - start_milli_time > timeout):
-                self._init_cmis_module(int_sfp, cmis_init_script)
-                break
-
-            time.sleep(sleep_time)
-
-=======
         int_sfp = {}
         end_time = time.time() + (float(timeout) / 1000.0)
         while end_time > time.time():
@@ -731,7 +592,8 @@ class SfpUtil(SfpUtilBase):
                     continue
 
                 # monitor the QSFP-DD module state, and initiate software reset when failure count > 5
-                buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
+                buf = self._read_eeprom_devid(
+                    x, self.IDENTITY_EEPROM_ADDR, 0x0, 4)
                 if buf is None:
                     log_info("PORT {0}: unable to get module state".format(x))
                     continue
@@ -748,9 +610,11 @@ class SfpUtil(SfpUtilBase):
                 # advance the failure counter if state == ModuleLowPwr and CMIS < v4.0
                 if (cmis < 0x40) and (((int(buf[3], 16) >> 1) & 0x7) == 1):
                     # fetch the module media type
-                    buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, 85, 1)
+                    buf = self._read_eeprom_devid(
+                        x, self.IDENTITY_EEPROM_ADDR, 85, 1)
                     if buf is None:
-                        log_info("PORT {0}: unable to get module media type".format(x))
+                        log_info(
+                            "PORT {0}: unable to get module media type".format(x))
                     # perform a software reset only if it's not a DAC (Passive Copper)
                     elif int(buf[0], 16) != 0x03:
                         self.mod_failure[x] += 1
@@ -763,19 +627,22 @@ class SfpUtil(SfpUtilBase):
                     # its module state could get stuck at ModuleLowPwr upon reinsertion, and a software
                     # reset is necessary to get it recovered.
                     log_info("PORT {0}: issuing a software reset".format(x))
-                    self._write_byte(x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
+                    self._write_byte(
+                        x, self.IDENTITY_EEPROM_ADDR, -1, 26, 0x08)
                     time.sleep(1)
 
                 # monitor the QSFP-DD initialization state, and reinitiate it if necessary
                 if self.mod_inited[x]:
                     continue
-                buf = self._read_eeprom_devid(x, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
+                buf = self._read_eeprom_devid(
+                    x, self.IDENTITY_EEPROM_ADDR, self._page_to_flat(202, 0x11), 4)
                 if buf is None:
                     continue
                 err = "".join(buf)
                 if err != '11111111':
                     if not self._init_cmis_module(x):
-                        log_info("PORT {0}: Unable to initialize the module".format(x))
+                        log_info(
+                            "PORT {0}: Unable to initialize the module".format(x))
                     else:
                         self.mod_inited[x] = True
 
@@ -784,7 +651,6 @@ class SfpUtil(SfpUtilBase):
                 break
 
             time.sleep(1)
->>>>>>> e4e7956e56be837e8d1bffd3275569c872d5a8df
         return True, int_sfp
 
     def get_qsfp_data(self, eeprom_ifraw):
@@ -810,7 +676,7 @@ class SfpUtil(SfpUtilBase):
         elif dict_name == "base_t_media_interface":
             return base_t_media_interface
         else:
-             return None
+            return None
 
     def parse_application(self, sfp_media_type_dict, host_interface, media_interface):
         host_result = host_electrical_interface[host_interface]
@@ -850,12 +716,14 @@ class SfpUtil(SfpUtilBase):
 
                 # decode the running application code
                 sel = 1
-                eeprom_data = self._read_eeprom_devid(port_num, self.IDENTITY_EEPROM_ADDR, 0x880, 32)
+                eeprom_data = self._read_eeprom_devid(
+                    port_num, self.IDENTITY_EEPROM_ADDR, 0x880, 32)
                 if eeprom_data is not None:
                     sel = int(eeprom_data[145 - 128], 16) >> 4
                     if sel < 1 or sel > len(dict):
                         sel = 1
-                sfp_data['interface']['data']['Application Selected'] = "{0}".format(sel)
+                sfp_data['interface']['data']['Application Selected'] = "{0}".format(
+                    sel)
 
             sfpd_obj = QSFPDDDomPaser(
                 eeprom_ifraw + eeprom_domraw) if eeprom_domraw else None
