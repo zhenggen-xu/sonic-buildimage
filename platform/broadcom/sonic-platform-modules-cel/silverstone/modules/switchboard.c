@@ -1325,7 +1325,7 @@ static int i2c_wait_ack(struct i2c_adapter *a, unsigned long timeout, int writin
     timeout = jiffies + msecs_to_jiffies(timeout);
     while (1) {
         Status = ioread8(pci_bar + REG_SR0);
-        if (jiffies > timeout) {
+        if (!time_is_after_jiffies(timeout)) {
             info("Status %2.2X", Status);
             info("Error Timeout");
             error = -ETIMEDOUT;
@@ -1340,6 +1340,7 @@ static int i2c_wait_ack(struct i2c_adapter *a, unsigned long timeout, int writin
         if (writing == 0 && (Status & (1 << I2C_SR_BIT_MCF))) {
             break;
         }
+        schedule();
     }
     Status = ioread8(pci_bar + REG_SR0);
     iowrite8(0, pci_bar + REG_SR0);
@@ -1430,7 +1431,11 @@ static int smbus_access(struct i2c_adapter *adapter, u16 addr,
         goto Done;
     }
 
+#if 1 /* 100 kHz */
+    iowrite8(portid | 0x40, pci_bar + REG_ID0);
+#else
     iowrite8(portid, pci_bar + REG_ID0);
+#endif
 
     ////[S][ADDR/R]
     //Clear status register
