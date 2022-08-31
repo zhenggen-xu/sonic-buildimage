@@ -248,8 +248,8 @@ class LldpManager(daemon_base.DaemonBase):
         # only check hostname in key:localhost
         if key == "localhost":
             hostname = device_dict.get("hostname")
-            # check hostname is valid and not the same as before
-            if hostname and not self.hostname == hostname:
+            # check if hostname is valid and not the same as before
+            if hostname and self.hostname != hostname:
                 self.log_info("Hostname changed old {0}, new {1}".format(self.hostname, hostname))
                 self.update_hostname(hostname)
 
